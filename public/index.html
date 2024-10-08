@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tutordays</title>
+  </head>
+  <body>
+    <div id="App">
+      <h1>Tutordays</h1>
+      <input type="text" id="newTask" />
+      <button id="addButton">add</button>
+      <ul id="taskList"></ul>
+      <li>Task</li>
+      <li>Task</li>
+      <li>Task</li>
+    </div>
+
+    <script>
+      //  let tasks = ['Task1', 'Task2', 'Task3', 'Task4']
+
+        let addButton = document.getElementById('addButton')
+        
+       //  let newTask = document.getElementById('newTask')
+        let taskList = document.getElementById('taskList')
+
+        addButton.onclick = function() {
+         //   addItem(newTask.value)
+         let taskField = document.getElementById('newTask')
+         let taskFieldContent = taskField.innerText;
+
+         let taskItem = document.createElement("li");
+         taskList.innerText = taskFieldContent;
+
+         taskList.appendChild(taskItem);
+
+        }
+
+        for (let index = 0; index tasks.length; index++) {
+            const element = tasks[index]
+
+            addItem(element)
+        }
+    </script>
+  </body>
+</html>
