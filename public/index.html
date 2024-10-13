@@ -17,7 +17,7 @@
       <header>
         <h1 v-text="sitename"></h1>
 
-        <button>
+        <button v-on:click="showCheckout">
           {{ itemsInTheCart }}
           <span class="fa-solid fa-cart-shopping"></span>
           Checkout
@@ -25,18 +25,24 @@
       </header>
 
       <main>
-        <img v-bind:src="product.Image" />
+        <div v-if="showProduct">
+          <figure>
+            <img v-bind:src="product.Image" />
+          </figure>
+          <h1 v-text="product.title"></h1>
+          <p v-text="product.description"></p>
+          <p>Price: {{ product.price }}</p>
 
-        <h1 v-text="product.title"></h1>
-        <p v-text="product.description"></p>
-        <p>Price: {{ product.price }}</p>
-
-        <button v-if="canAddToTheCart" v-on:click="addItemToTheCart">
-          Add to the Cart"
-        </button>
+          <button v-if="canAddToTheCart" v-on:click="addItemToTheCart">
+            Add to the Cart"
+          </button>
+          <div v-else>
+            <button disabled>Add to the Cart</button>
+            You have added all the availble items for this product in your cart
+          </div>
+        </div>
         <div v-else>
-          <button disabled>Add to the Cart</button>
-          You have added all the availble items for this product in your cart
+          <h1>Welcome to the Checkout page</h1>
         </div>
       </main>
     </div>
@@ -46,6 +52,7 @@
         el: "#App",
         data: {
           sitename: "Tutordays",
+          showProduct: true,
           product: {
             id: 1001,
             title: "Maths lessons",
@@ -58,6 +65,14 @@
           cart: [],
         },
         methods: {
+          showCheckout: function () {
+            /* if (this.showProduct) {
+              this.showProduct = false
+            } else {
+              this.showProduct = true
+            } */
+            this.showProduct =  this.showProduct ?  false : true;
+          },
           addItemToTheCart: function () {
             this.cart.push(this.product.id);
           },
