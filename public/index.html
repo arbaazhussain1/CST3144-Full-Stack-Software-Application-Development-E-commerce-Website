@@ -5,7 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
     <title>Tutordays</title>
   </head>
@@ -15,7 +18,7 @@
         <h1 v-text="sitename"></h1>
 
         <button>
-          {{ itemsInTheCart }} 
+          {{ itemsInTheCart }}
           <span class="fa-solid fa-cart-shopping"></span>
           Checkout
         </button>
@@ -28,11 +31,13 @@
         <p v-text="product.description"></p>
         <p>Price: {{ product.price }}</p>
 
-        <input
-          type="button"
-          value="Add to the Cart"
-          v-on:click="addItemToTheCart "
-        />
+        <button v-if="canAddToTheCart" v-on:click="addItemToTheCart">
+          Add to the Cart"
+        </button>
+        <div v-else>
+          <button disabled>Add to the Cart</button>
+          You have added all the availble items for this product in your cart
+        </div>
       </main>
     </div>
 
@@ -48,6 +53,7 @@
               "Teaching lesson for students from Secondary schools from years 7 - 11 for 1 hour",
             price: 200,
             Image: "Images/images1.jpeg",
+            availableInventory: 5,
           },
           cart: [],
         },
@@ -57,10 +63,13 @@
           },
         },
         computed: {
-          itemsInTheCart: function() {
+          itemsInTheCart: function () {
             return this.cart.length || "";
-          }
-        }
+          },
+          canAddToTheCart: function () {
+            return this.product.availableInventory > this.itemsInTheCart;
+          },
+        },
       });
     </script>
   </body>
