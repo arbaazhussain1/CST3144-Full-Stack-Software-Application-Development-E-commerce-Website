@@ -2,45 +2,61 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
     <title>Tutordays</title>
   </head>
   <body>
     <div id="App">
-      <h1>Tutordays</h1>
-      <input type="text" id="newTask" />
-      <button id="addButton">add</button>
-      <ul id="taskList"></ul>
-      <li>Task</li>
-      <li>Task</li>
-      <li>Task</li>
+      <header>
+        <h1 v-text="sitename"></h1>
+
+        <button>
+          itemsInTheCart 
+          icon 
+          Checkout
+        </button>
+      </header>
+
+      <main>
+        <img v-bind:src="product.Image" />
+
+        <h1 v-text="product.title"></h1>
+        <p v-text="product.description"></p>
+        <p>Price: {{ product.price }}</p>
+
+        <input
+          type="button"
+          value="Add to the Cart"
+          v-on:click="addItemToTheCart "
+        />
+      </main>
     </div>
 
     <script>
-      //  let tasks = ['Task1', 'Task2', 'Task3', 'Task4']
-
-        let addButton = document.getElementById('addButton')
-        
-       //  let newTask = document.getElementById('newTask')
-        let taskList = document.getElementById('taskList')
-
-        addButton.onclick = function() {
-         //   addItem(newTask.value)
-         let taskField = document.getElementById('newTask')
-         let taskFieldContent = taskField.innerText;
-
-         let taskItem = document.createElement("li");
-         taskList.innerText = taskFieldContent;
-
-         taskList.appendChild(taskItem);
-
-        }
-
-        for (let index = 0; index tasks.length; index++) {
-            const element = tasks[index]
-
-            addItem(element)
-        }
+      let webstore = new Vue({
+        el: "#App",
+        data: {
+          sitename: "Tutordays",
+          product: {
+            id: 1001,
+            title: "Maths lessons",
+            description:
+              "Teaching lesson for students from Secondary schools from years 7 - 11 for 1 hour",
+            price: 200,
+            Image: "Images/images1.jpeg",
+          },
+          cart: [],
+        },
+        methods: {
+          addItemToTheCart: function () {
+            this.cart.push(this.product.id);
+          },
+        },
+      });
     </script>
   </body>
 </html>
