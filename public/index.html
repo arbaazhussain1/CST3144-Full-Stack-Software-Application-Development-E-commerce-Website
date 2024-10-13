@@ -66,12 +66,7 @@
         },
         methods: {
           showCheckout: function () {
-            /* if (this.showProduct) {
-              this.showProduct = false
-            } else {
-              this.showProduct = true
-            } */
-            this.showProduct =  this.showProduct ?  false : true;
+            this.showProduct = this.showProduct ? false : true;
           },
           addItemToTheCart: function () {
             this.cart.push(this.product.id);
