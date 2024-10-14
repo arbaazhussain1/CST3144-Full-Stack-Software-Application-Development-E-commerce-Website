@@ -34,7 +34,7 @@
           <p>Price: {{ product.price }}</p>
 
           <button v-if="canAddToTheCart" v-on:click="addItemToTheCart">
-            Add to the Cart"
+            Add to the Cart
           </button>
           <div v-else>
             <button disabled>Add to the Cart</button>
@@ -81,9 +81,10 @@
             <!-- This input field is bound to 'zip' in the 'order' object -->
             <input v-model="order.zip" />
           </p>
-          <p><input type="checkbox" id="gift" value="true" v-modal="order.gift"><label for="gift">Ship As Gift</label></p>
-          <p><input type="radio" id="home" value="Home" v-modal="order.method"><label for="home">Home</label>
-          <input type="radio" id="business" value="Business" v-modal="order.method"><label for="business">Business</label></p>
+          <p><input type="checkbox" id="gift" value="true" v-model="order.gift"><label for="gift">Ship As Gift</label></p>
+          <p><input type="radio" id="home" value="Home" v-model="order.method"><label for="home">Home</label>
+          <input type="radio" id="business" value="Business" v-model="order.method"><label for="business">Business</label></p>
+          <button v-on:click="submitForm">Place Order</button>
 
           <h2>Order Information</h2>
           <p>First Name: {{order.firstName}}</p>
@@ -131,6 +132,9 @@
           },
           addItemToTheCart: function () {
             this.cart.push(this.product.id);
+          },
+          submitForm: function () {
+            alert('Order Submitted!');
           },
         },
         computed: {
