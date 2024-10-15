@@ -5,11 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <link rel="stylesheet" href="CSS/style.css" />
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+
     <title>Tutordays</title>
   </head>
   <body>
@@ -48,22 +51,45 @@
           <p>
             <strong>First Name:</strong>
             <!-- This input field is bound to 'firstName' in the 'order' object -->
-            <input v-model="order.firstName" />
+            <input
+              v-model.trim="order.firstName"
+              v-on:input="validateName('firstName')"
+            />
+            <span class="error" v-if="errors.firstName"
+              >{{ errors.firstName }}</span
+            >
           </p>
           <p>
             <strong>Last Name:</strong>
             <!-- This input field is bound to 'lastName' in the 'order' object -->
-            <input v-model="order.lastName" />
+            <input
+              v-model.trim="order.lastName"
+              v-on:input="validateName('lastName')"
+            />
+            <span class="error" v-if="errors.lastName"
+              >{{ errors.lastName }}</span
+            >
+          </p>
+          <p>
+            <strong>Phone Number:</strong>
+            <!-- This input field is bound to phoneNumber' in the 'order' object -->
+            <input
+              v-model.trim="order.phoneNumber"
+              v-on:input="validatePhoneNumber"
+            />
+            <span class="error" v-if="errors.phoneNumber"
+              >{{ errors.phoneNumber }}</span
+            >
           </p>
           <p>
             <strong>Address:</strong>
             <!-- This input field is bound to 'address' in the 'order' object -->
-            <input v-model="order.address" />
+            <input v-model.trim="order.address" />
           </p>
           <p>
             <strong>City:</strong>
             <!-- This input field is bound to 'city' in the 'order' object -->
-            <input v-model="order.city" />
+            <input v-model.trim="order.city" />
           </p>
           <p>
             <strong>State:</strong>
@@ -79,7 +105,7 @@
           <p>
             <strong>Zip/Postal Code:</strong>
             <!-- This input field is bound to 'zip' in the 'order' object -->
-            <input v-model="order.zip" />
+            <input v-model.number="order.zip" />
           </p>
           <p>
             <input
@@ -110,6 +136,7 @@
           <h2>Order Information</h2>
           <p>First Name: {{order.firstName}}</p>
           <p>Last Name: {{order.lastName}}</p>
+          <p>Phone Number: {{order.phoneNumber}}</p>
           <p>Address: {{order.address}}</p>
           <p>City: {{order.city}}</p>
           <p>Zip: {{order.zip}}</p>
@@ -146,13 +173,18 @@
             sendGift: "Send as a gift",
             dontsendGift: "Do not send as a gift",
           },
-             // List of states for dynamic dropdown
-             states: {
-              AL: "Alabama",
-              AR: "Arizona",
-              CA: "California",
-              NV: "Nevada",
-            },
+          // List of states for dynamic dropdown
+          states: {
+            AL: "Alabama",
+            AR: "Arizona",
+            CA: "California",
+            NV: "Nevada",
+          },
+          errors: {
+            firstName: "",
+            lastName: "",
+            phoneNumber: "",
+          },
         },
         methods: {
           showCheckout: function () {
@@ -161,8 +193,37 @@
           addItemToTheCart: function () {
             this.cart.push(this.product.id);
           },
+          validateName: function (field) {
+            const nameRegex = /^[A-Za-z\s]+$/;
+            if (!nameRegex.test(this.order[field])) {
+              this.errors[field] = "Only letters and spaces are allowed!";
+            } else {
+              this.errors[field] = "";
+            }
+          },
+          validatePhoneNumber: function () {
+            const phoneRegex = /^[0-9]+$/;
+            if (!phoneRegex.test(this.order.phoneNumber)) {
+              this.errors.phoneNumber =
+                "Only numbers are allowed in the phone number!";
+            } else {
+              this.errors.phoneNumber = "";
+            }
+          },
           submitForm: function () {
-            alert("Order Submitted!");
+            this.validateName("firstName");
+            this.validateName("lastName");
+            this.validatePhoneNumber();
+
+            if (
+              !this.errors.firstName &&
+              !this.errors.lastName &&
+              !this.errors.phoneNumber
+            ) {
+              alert("Congratulations! Order Submitted!");
+            } else {
+              alert("Please correct the errors before submitting.");
+            }
           },
         },
         computed: {
