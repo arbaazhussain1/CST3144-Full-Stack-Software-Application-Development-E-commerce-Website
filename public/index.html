@@ -6,22 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="CSS/style.css" />
-
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
+
+    <!-- Load products.js before Vue.js -->
+    <script src="products.js"></script>
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
 
     <title>Tutordays</title>
-    
   </head>
   <body>
     <div id="App">
       <header>
         <h1 v-text="sitename"></h1>
 
-        <button v-on:click="showCheckout">
+        <button v-on:click="showCheckout" :disabled="itemsInTheCart == 0">
           {{ itemsInTheCart }}
           <span class="fa-solid fa-cart-shopping"></span>
           Checkout
@@ -30,117 +31,133 @@
 
       <main>
         <div v-if="showProduct">
-          <figure>
-            <img v-bind:src="product.Image" />
-          </figure>
-          <h1 v-text="product.title"></h1>
-          <p v-text="product.description"></p>
-          <p>Price: {{ product.price }}</p>
+          <!-- Loop through products and display them -->
+          <div v-for="product in products" :key="product.id">
+            <img v-bind:src="product.image" />
+            <h2>{{ product.title }}</h2>
+            <p>{{ product.description }}</p>
+            <p>Price: £{{ product.price }}</p>
+            <p>Stock: {{ product.availableInventory }}</p>
 
-          <button v-if="canAddToTheCart" v-on:click="addItemToTheCart">
-            Add to the Cart
-          </button>
-          <div v-else>
-            <button disabled>Add to the Cart</button>
-            You have added all the availble items for this product in your cart
+            <!-- Check if product can be added to the cart -->
+            <button
+              v-if="canAddToTheCart(product)"
+              v-on:click="addItemToTheCart(product)"
+            >
+              Add to the Cart
+            </button>
+            <div v-else>
+              <button disabled>Add to the Cart</button>
+              You have added all the available items for this product to your
+              cart
+            </div>
           </div>
         </div>
-        <div v-else>
-          <h1>Welcome to the Checkout page</h1>
-          <h2>Checkout</h2>
-          <h2>Enter Your Information</h2>
-          <p>
-            <strong>First Name:</strong>
-            <!-- This input field is bound to 'firstName' in the 'order' object -->
-            <input
-              v-model.trim="order.firstName"
-              v-on:input="validateName('firstName')"
-            />
-            <span class="error" v-if="errors.firstName"
-              >{{ errors.firstName }}</span
-            >
-          </p>
-          <p>
-            <strong>Last Name:</strong>
-            <!-- This input field is bound to 'lastName' in the 'order' object -->
-            <input
-              v-model.trim="order.lastName"
-              v-on:input="validateName('lastName')"
-            />
-            <span class="error" v-if="errors.lastName"
-              >{{ errors.lastName }}</span
-            >
-          </p>
-          <p>
-            <strong>Phone Number:</strong>
-            <!-- This input field is bound to phoneNumber' in the 'order' object -->
-            <input
-              v-model.trim="order.phoneNumber"
-              v-on:input="validatePhoneNumber"
-            />
-            <span class="error" v-if="errors.phoneNumber"
-              >{{ errors.phoneNumber }}</span
-            >
-          </p>
-          <p>
-            <strong>Address:</strong>
-            <!-- This input field is bound to 'address' in the 'order' object -->
-            <input v-model.trim="order.address" />
-          </p>
-          <p>
-            <strong>City:</strong>
-            <!-- This input field is bound to 'city' in the 'order' object -->
-            <input v-model.trim="order.city" />
-          </p>
-          <p>
-            <strong>State:</strong>
-            <!-- This input field is bound to 'state' in the 'order' object -->
-            <select v-model="order.state" class="form-control">
-              <option disabled value="">State</option>
-              <option v-for="(state, key) in states" v-bind:value="state"> {{key}}
-              </option>
-       
-            </select>
-          </p>
-          <p>
-            <strong>Zip/Postal Code:</strong>
-            <!-- This input field is bound to 'zip' in the 'order' object -->
-            <input v-model.number="order.zip" />
-          </p>
-          <p>
-            <input
-              type="checkbox"
-              id="gift"
-              value="true"
-              v-model="order.gift"
-              v-bind:true-value="order.sendGift"
-              v-bind:false-value="order.dontsendGift"
-            /><label for="gift">Ship As Gift</label>
-          </p>
-          <p>
-            <input
-              type="radio"
-              id="home"
-              value="Home"
-              v-model="order.method"
-            /><label for="home">Home</label>
-            <input
-              type="radio"
-              id="business"
-              value="Business"
-              v-model="order.method"
-            /><label for="business">Business</label>
-          </p>
-          <button v-on:click="submitForm">Place Order</button>
 
-          <h2>Order Information</h2>
-          <p>First Name: {{order.firstName}}</p>
-          <p>Last Name: {{order.lastName}}</p>
-          <p>Phone Number: {{order.phoneNumber}}</p>
-          <p>Address: {{order.address}}</p>
-          <p>City: {{order.city}}</p>
-          <p>Zip: {{order.zip}}</p>
-          <p>State: {{order.state}}</p>
+        <!-- Checkout Section -->
+        <div v-else>
+          <div v-if="itemsInTheCart">
+            <h1>Welcome to the Checkout page</h1>
+
+            <h2>Your Cart:</h2>
+            <ul>
+              <li v-for="(item, index) in cart" :key="item.id + '-' + index">
+                {{ item.title }} - Price: £{{ item.price }}
+              </li>
+            </ul>
+
+            <!-- Checkout Form -->
+            <h2>Enter Your Information</h2>
+            <p>
+              <strong>First Name:</strong>
+              <input
+                v-model.trim="order.firstName"
+                v-on:input="validateName('firstName')"
+              />
+              <span class="error" v-if="errors.firstName"
+                >{{ errors.firstName }}</span
+              >
+            </p>
+            <p>
+              <strong>Last Name:</strong>
+              <input
+                v-model.trim="order.lastName"
+                v-on:input="validateName('lastName')"
+              />
+              <span class="error" v-if="errors.lastName"
+                >{{ errors.lastName }}</span
+              >
+            </p>
+            <p>
+              <strong>Phone Number:</strong>
+              <input
+                v-model.trim="order.phoneNumber"
+                v-on:input="validatePhoneNumber"
+              />
+              <span class="error" v-if="errors.phoneNumber"
+                >{{ errors.phoneNumber }}</span
+              >
+            </p>
+            <p>
+              <strong>Address:</strong>
+              <input v-model.trim="order.address" />
+            </p>
+            <p>
+              <strong>City:</strong>
+              <input v-model.trim="order.city" />
+            </p>
+            <p>
+              <strong>State:</strong>
+              <select v-model="order.state" class="form-control">
+                <option disabled value="">State</option>
+                <option v-for="(state, key) in states" v-bind:value="state">
+                  {{ key }}
+                </option>
+              </select>
+            </p>
+            <p>
+              <strong>Zip/Postal Code:</strong>
+              <input v-model.number="order.zip" />
+            </p>
+            <p>
+              <input
+                type="checkbox"
+                id="gift"
+                value="true"
+                v-model="order.gift"
+                v-bind:true-value="order.sendGift"
+                v-bind:false-value="order.dontsendGift"
+              />
+              <label for="gift">Ship As Gift</label>
+            </p>
+            <p>
+              <input
+                type="radio"
+                id="home"
+                value="Home"
+                v-model="order.method"
+              />
+              <label for="home">Home</label>
+              <input
+                type="radio"
+                id="business"
+                value="Business"
+                v-model="order.method"
+              />
+              <label for="business">Business</label>
+            </p>
+
+            <button v-on:click="submitForm">Place Order</button>
+
+            <h2>Order Information</h2>
+            <p>First Name: {{ order.firstName }}</p>
+            <p>Last Name: {{ order.lastName }}</p>
+            <p>Phone Number: {{ order.phoneNumber }}</p>
+            <p>Address: {{ order.address }}</p>
+            <p>City: {{ order.city }}</p>
+            <p>Zip: {{ order.zip }}</p>
+            <p>State: {{ order.state }}</p>
+          </div>
         </div>
       </main>
     </div>
@@ -150,16 +167,8 @@
         el: "#App",
         data: {
           sitename: "Tutordays",
-          showProduct: true,
-          product: {
-            id: 1001,
-            title: "Maths lessons",
-            description:
-              "Teaching lesson for students from Secondary schools from years 7 - 11 for 1 hour",
-            price: 200,
-            Image: "Images/images1.jpeg",
-            availableInventory: 5,
-          },
+          showProduct: true, // Show products initially
+          products: products, // Load products from products.js
           cart: [],
           order: {
             firstName: "",
@@ -173,7 +182,6 @@
             sendGift: "Send as a gift",
             dontsendGift: "Do not send as a gift",
           },
-          // List of states for dynamic dropdown
           states: {
             AL: "Alabama",
             AR: "Arizona",
@@ -188,10 +196,19 @@
         },
         methods: {
           showCheckout: function () {
-            this.showProduct = this.showProduct ? false : true;
+            this.showProduct = !this.showProduct; // Toggle between products and checkout view
           },
-          addItemToTheCart: function () {
-            this.cart.push(this.product.id);
+          addItemToTheCart: function (product) {
+            this.cart.push({
+              id: product.id,
+              title: product.title,
+              price: product.price,
+              quantity: 1,
+            });
+            product.availableInventory--; // Decrease inventory
+          },
+          canAddToTheCart: function (product) {
+            return product.availableInventory > 0; // Check product stock
           },
           validateName: function (field) {
             const nameRegex = /^[A-Za-z\s]+$/;
