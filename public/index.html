@@ -26,13 +26,14 @@
   </head>
   <body>
     <div id="App">
-      <header>
-        <div class="container mb-5 mt-3">
+      <header class="nav">
+        <div class="container mb-4 mt-3">
           <div class="row">
             <div class="col-6">
               <h1 v-text="sitename"></h1>
             </div>
             <div class="col-6" style="display: flex; justify-content: flex-end">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
               <input
                 type="text"
                 v-model="searchQuery"
@@ -40,20 +41,12 @@
                 class="form-control"
                 style="width: 200px; margin-right: 10px"
               />
-              
-              <button
-                v-on:click="filterProducts"
-                class="btn btn-primary"
-              >
-                Search
-                <span class="fa-solid fa-magnifying-glass"></span>
-              </button>
 
               <button
                 v-on:click="showCheckout"
                 :disabled="itemsInTheCart === 0"
                 class="btn btn-secondary"
-                style="margin-left: 10px"
+                style="margin-left: 10px; background-color: green; color: white"
               >
                 {{ itemsInTheCart }}
                 <span class="fa-solid fa-cart-shopping"></span>
@@ -65,30 +58,47 @@
       </header>
 
       <main>
-        <!-- Sorting Section -->
-        <div class="container mb-3">
-          <h4>Sort Items by:</h4>
-          <select v-model="sortKey" class="form-select" aria-label="Sort select">
-            <option value="title">Title</option>
-            <option value="description">Description</option>
-            <option value="price"> Price</option>
-            <option value="availableInventory">Available Items</option>
-          </select>
-        </div>
-        <!-- Order Section -->
-        <div class="container mb-3">
-          <h4> Order Items by:</h4>
-          <select v-model="orderKey" class="form-select" aria-label="Order select">
-            <option value="Ascending">Ascending</option>
-            <option value="Descending">Descending</option>
-           
-          </select>
-        </div>
         <!-- Products Section -->
         <div v-if="showProduct">
+          <div class="container mb-3">
+            <h2 class="productH2">
+              Explore Quality Educational Products with Tutordays
+            </h2>
+          </div>
+          <!-- Sorting Section -->
+          <div class="container mb-3" class="bo">
+            <h4>Sort Items by:</h4>
+            <select
+              v-model="sortKey"
+              class="form-select"
+              aria-label="Sort select"
+            >
+              <option value="title">Title</option>
+              <option value="description">Description</option>
+              <option value="price">Price</option>
+              <option value="availableInventory">Available Items</option>
+              <option value="rating">Rating</option>
+            </select>
+          </div>
+          <!-- Order Section -->
+          <div class="container mb-3">
+            <h4>Order Items by:</h4>
+            <select
+              v-model="orderKey"
+              class="form-select"
+              aria-label="Order select"
+            >
+              <option value="Ascending">Ascending</option>
+              <option value="Descending">Descending</option>
+            </select>
+          </div>
           <div class="container">
             <div class="row">
-              <div class="col-4" v-for="product in filteredProducts" :key="product.id">
+              <div
+                class="col-4"
+                v-for="product in filteredProducts"
+                :key="product.id"
+              >
                 <img
                   v-bind:src="product.image"
                   style="width: 100%; height: auto; object-fit: cover"
@@ -100,28 +110,49 @@
 
                 <!-- Star Rating -->
                 <div>
-                  <span v-for="n in 5" :key="n"> </span>
+                  <span v-for="n in product.rating" :key="'filled-' + n"
+                    >★</span
+                  >
+                  <span v-for="n in 5 - product.rating" :key="'empty-' + n"
+                    >☆</span
+                  >
                 </div>
 
                 <div>
-                  <span v-for="n in product.rating">★</span>
-                  <span v-for="n in 5 - product.rating">☆</span>
-                </div>
+                  <span v-if="product.availableInventory === 0">
+                    <button
+                      class="btn add-to-cart-btn"
+                      style="color: red"
+                      disabled
+                    >
+                      Out of Stock
+                    </button>
+                    All out!
+                  </span>
 
-                <button
-                  v-if="canAddToTheCart(product)"
-                  v-on:click="addItemToTheCart(product)"
-                >
-                  Add to the Cart
-                </button>
-                <span v-else-if="product.availableInventory === 0">
-                  <button disabled>Add to the Cart</button>
-                  All out!
-                </span>
-                <span v-else-if="product.availableInventory < 5">
-                  Only {{ product.availableInventory }} left!
-                </span>
-                <span v-else> Buy now! </span>
+                  <span
+                    v-else-if="product.availableInventory > 0 && product.availableInventory < 5"
+                  >
+                    Only {{ product.availableInventory }} left!
+                    <button
+                      v-on:click="addItemToTheCart(product)"
+                      class="btn add-to-cart-btn"
+                      style="color: white; background-color: green"
+                    >
+                      Buy Now!
+                    </button>
+                  </span>
+
+                  <span v-else-if="product.availableInventory >= 5">
+                    <button
+                      v-on:click="addItemToTheCart(product)"
+                      class="btn add-to-cart-btn"
+                      style="color: white; background-color: green"
+                    >
+                      Buy Now!
+                    </button>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -129,119 +160,195 @@
 
         <!-- Checkout Section -->
         <div v-else>
-          <h1>Welcome to the Checkout page</h1>
+          <div class="container mb-3">
+            <h1>Welcome to the Checkout page</h1>
 
-          <div v-if="cart.length > 0">
-            <h2>Your Cart:</h2>
-            <ul>
-              <li v-for="(item, index) in cart" :key="item.id + '-' + index">
-                <img
-                  v-bind:src="item.image"
-                  alt="Product Image"
-                  style="width: 50px; height: auto; margin-right: 10px"
+            <div v-if="cart.length > 0">
+              <h2>Your Cart:</h2>
+              <ul>
+                <li v-for="(item, index) in cart" :key="item.id + '-' + index">
+                  <img
+                    v-bind:src="item.image"
+                    alt="Product Image"
+                    style="width: 50px; height: auto; margin-right: 10px"
+                  />
+                  {{ item.title }} - Price: £{{ item.price }}
+                  <button
+                    v-on:click="removeItemFromCart(item, index)"
+                    class="btn btn-danger btn-sm"
+                    style="margin-left: 10px"
+                  >
+                    Remove
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div v-else>
+              <h2>Your Cart is Empty!</h2>
+              <p>
+                Please add items to your cart before proceeding to checkout.
+              </p>
+            </div>
+          </div>
+          <div class="container mb-3">
+            <h2>Enter Your Information</h2>
+            <form @submit.prevent="submitForm">
+              <div class="mb-3">
+                <label for="firstName" class="form-label">First Name:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="firstName"
+                  v-model.trim="order.firstName"
+                  v-on:input="validateName('firstName')"
+                  required
                 />
-                {{ item.title }} - Price: £{{ item.price }}
-                <button
-                  v-on:click="removeItemFromCart(item, index)"
-                  class="btn btn-danger btn-sm"
-                  style="margin-left: 10px"
+                <span class="error text-danger" v-if="errors.firstName"
+                  >{{ errors.firstName }}</span
                 >
-                  Remove
-                </button>
-              </li>
-            </ul>
+              </div>
+
+              <div class="mb-3">
+                <label for="lastName" class="form-label">Last Name:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="lastName"
+                  v-model.trim="order.lastName"
+                  v-on:input="validateName('lastName')"
+                  required
+                />
+                <span class="error text-danger" v-if="errors.lastName"
+                  >{{ errors.lastName }}</span
+                >
+              </div>
+
+              <div class="mb-3">
+                <label for="phoneNumber" class="form-label"
+                  >Phone Number:</label
+                >
+                <input
+                  type="tel"
+                  class="form-control"
+                  id="phoneNumber"
+                  v-model.trim="order.phoneNumber"
+                  v-on:input="validatePhoneNumber"
+                  required
+                />
+                <span class="error text-danger" v-if="errors.phoneNumber"
+                  >{{ errors.phoneNumber }}</span
+                >
+              </div>
+
+              <div class="mb-3">
+                <label for="address" class="form-label">Address:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="address"
+                  v-model.trim="order.address"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="city" class="form-label">City:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="city"
+                  v-model.trim="order.city"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="state" class="form-label">State:</label>
+                <select v-model="order.state" class="form-control" id="state">
+                  <option disabled value="">Select State</option>
+                  <option v-for="(name, code) in states" :value="code">
+                    {{ name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="zip" class="form-label">Zip/Postal Code:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="zip"
+                  v-model.number="order.zip"
+                />
+              </div>
+
+              <div class="mb-3 form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="gift"
+                  v-model="order.gift"
+                />
+                <label class="form-check-label" for="gift">Ship As Gift</label>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Shipping Method:</label>
+                <div>
+                  <input
+                    type="radio"
+                    id="home"
+                    value="Home"
+                    v-model="order.method"
+                    class="form-check-input"
+                  />
+                  <label class="form-check-label" for="home">Home</label>
+                </div>
+                <div>
+                  <input
+                    type="radio"
+                    id="business"
+                    value="Business"
+                    v-model="order.method"
+                    class="form-check-input"
+                  />
+                  <label class="form-check-label" for="business"
+                    >Business</label
+                  >
+                </div>
+              </div>
+
+              <!-- Keeping the previous "Place Order" button -->
+              <button
+                type="submit"
+                class="btn add-to-cart-btn"
+                style="color: white"
+              >
+                Place Order
+              </button>
+
+              <h2>Order Information</h2>
+              <p v-if="order.firstName">First Name: {{ order.firstName }}</p>
+              <p v-if="order.lastName">Last Name: {{ order.lastName }}</p>
+              <p v-if="order.phoneNumber">
+                Phone Number: {{ order.phoneNumber }}
+              </p>
+              <p v-if="order.address">Address: {{ order.address }}</p>
+              <p v-if="order.city">City: {{ order.city }}</p>
+              <p v-if="order.zip">Zip: {{ order.zip }}</p>
+              <p v-if="order.state">
+                State: {{ getFullStateName(order.state) }}
+              </p>
+
+              <!-- Back to Products Button -->
+              <button
+                type="button"
+                v-on:click="showCheckout"
+                class="btn btn-primary mt-3"
+              >
+                Back to Products
+              </button>
+            </form>
           </div>
-
-          <div v-else>
-            <h2>Your Cart is Empty!</h2>
-            <p>Please add items to your cart before proceeding to checkout.</p>
-          </div>
-
-          <!-- Checkout Form -->
-          <h2>Enter Your Information</h2>
-          <p>
-            <strong>First Name:</strong>
-            <input
-              v-model.trim="order.firstName"
-              v-on:input="validateName('firstName')"
-            />
-            <span class="error" v-if="errors.firstName"
-              >{{ errors.firstName }}</span
-            >
-          </p>
-          <p>
-            <strong>Last Name:</strong>
-            <input
-              v-model.trim="order.lastName"
-              v-on:input="validateName('lastName')"
-            />
-            <span class="error" v-if="errors.lastName"
-              >{{ errors.lastName }}</span
-            >
-          </p>
-          <p>
-            <strong>Phone Number:</strong>
-            <input
-              v-model.trim="order.phoneNumber"
-              v-on:input="validatePhoneNumber"
-              type="tel"
-            />
-            <span class="error" v-if="errors.phoneNumber"
-              >{{ errors.phoneNumber }}</span
-            >
-          </p>
-          <p>
-            <strong>Address:</strong>
-            <input v-model.trim="order.address" />
-          </p>
-          <p>
-            <strong>City:</strong>
-            <input v-model.trim="order.city" />
-          </p>
-          <p>
-            <strong>State:</strong>
-            <select v-model="order.state" class="form-control">
-              <option disabled value="">Select State</option>
-              <option v-for="(name, code) in states" :value="code">
-                {{ name }}
-              </option>
-            </select>
-          </p>
-          <p>
-            <strong>Zip/Postal Code:</strong>
-            <input v-model.number="order.zip" />
-          </p>
-          <p>
-            <input type="checkbox" id="gift" v-model="order.gift" />
-            <label for="gift">Ship As Gift</label>
-          </p>
-          <p>
-            <input type="radio" id="home" value="Home" v-model="order.method" />
-            <label for="home">Home</label>
-            <input
-              type="radio"
-              id="business"
-              value="Business"
-              v-model="order.method"
-            />
-            <label for="business">Business</label>
-          </p>
-
-          <button v-on:click="submitForm">Place Order</button>
-
-          <h2>Order Information</h2>
-          <p v-if="order.firstName">First Name: {{ order.firstName }}</p>
-          <p v-if="order.lastName">Last Name: {{ order.lastName }}</p>
-          <p v-if="order.phoneNumber">Phone Number: {{ order.phoneNumber }}</p>
-          <p v-if="order.address">Address: {{ order.address }}</p>
-          <p v-if="order.city">City: {{ order.city }}</p>
-          <p v-if="order.zip">Zip: {{ order.zip }}</p>
-          <p v-if="order.state">State: {{ getFullStateName(order.state) }}</p>
-
-          <!-- Back to Products Button -->
-          <button v-on:click="showCheckout" class="btn btn-secondary mt-3">
-            Back to Products
-          </button>
         </div>
       </main>
     </div>
@@ -253,9 +360,10 @@
           sitename: "Tutordays",
           showProduct: true, // Show products initially
           products: products, // Load products from products.js
-          filteredProducts: products, // Add filteredProducts to display searched products
-          cart: [],
           searchQuery: "", // Add searchQuery for search input
+          sortKey: "title", // Default sorting by title
+          orderKey: "Ascending", // Default order is Ascending
+          cart: [],
           order: {
             firstName: "",
             lastName: "",
@@ -340,21 +448,66 @@
           setRating: function (product, rating) {
             product.rating = rating; // Set the selected rating for the product
           },
-          // Method to filter products based on search query
           filterProducts: function () {
             const query = this.searchQuery.toLowerCase();
-            this.filteredProducts = this.products.filter((product) =>
-              product.title.toLowerCase().includes(query) ||
-              product.description.toLowerCase().includes(query)
-            );
+
+            return this.products.filter((product) => {
+              // Check if the query matches text-based fields
+              const isTextMatch =
+                product.title.toLowerCase().includes(query) ||
+                product.description.toLowerCase().includes(query);
+
+              // Check if the query matches number fields (price, stock, rating)
+              const isNumberMatch =
+                !isNaN(query) &&
+                (product.price === parseFloat(query) ||
+                  product.availableInventory === parseInt(query) ||
+                  product.rating === parseInt(query));
+
+              return isTextMatch || isNumberMatch;
+            });
           },
         },
         computed: {
           itemsInTheCart: function () {
             return this.cart.length; // Returns the number of items in the cart
           },
+          sortedProducts: function () {
+            // Sort products based on sortKey
+            let sorted = this.filterProducts().sort((a, b) => {
+              if (
+                this.sortKey === "price" ||
+                this.sortKey === "availableInventory" ||
+                this.sortKey === "rating"
+              ) {
+                return a[this.sortKey] - b[this.sortKey]; // Sorting numbers
+              } else {
+                // Sorting strings
+                return a[this.sortKey].localeCompare(b[this.sortKey]);
+              }
+            });
+
+            // Reverse the order if Descending is selected
+            if (this.orderKey === "Descending") {
+              sorted.reverse();
+            }
+
+            return sorted;
+          },
+          filteredProducts: function () {
+            // Now this returns the filtered and sorted products
+            return this.sortedProducts;
+          },
         },
       });
     </script>
+    <footer class>
+      <p>
+        Created by Arbaaz Ali Hussain M00872279 &copy; . Contact:
+        <a href="ah2010@live.mdx.ac.uk" target="_blank"> Send me an Email </a>
+        Middlesex University London. The Burroughs, NW4 4BT.
+        <a href="tel:02084115000"> Call MDX </a>
+      </p>
+    </footer>
   </body>
 </html>
