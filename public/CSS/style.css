@@ -6,5 +6,28 @@
 body {
   background-color: white;
 }
+.nav {
+  background-image: linear-gradient(to right, rgb(65, 198, 65), green, #0a0c8c);
+  color: white;
+}
+.container {
+    margin-bottom: 1rem; /* Adjust margin if necessary */
+}
 
+.productH2 {
+    margin: 0; /* Remove default margin */
+    text-align: center; /* Center the heading if needed */
+}
+
+/* Add a color and style to the footer */
+footer {
+  background-image: linear-gradient(to right, rgb(65, 198, 65), green, #0a0c8c);
+  color: white;
+
+  color: white;
+  text-align: center; /* Center the text */
+}
+footer p {
+  margin: 0; /* Remove margin from paragraph inside footer */
+}
 
