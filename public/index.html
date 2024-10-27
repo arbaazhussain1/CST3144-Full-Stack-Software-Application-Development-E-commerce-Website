@@ -1,37 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Meta information and linking to CSS, Bootstrap, Font Awesome, and JS files -->
     <meta charset="UTF-8" />
+    <!-- Set character encoding to UTF-8 -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Compatibility for Internet Explorer -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Responsive scaling on mobile devices -->
+    <!-- Linking to external CSS and JavaScript resources -->
     <link rel="stylesheet" href="CSS/style.css" />
+    <!-- Custom styling -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <script src="products.js"></script>
+    <!-- Font Awesome icons -->
+    <script src="JavaScript/products.js"></script>
+    <!-- Script for product data -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
       crossorigin="anonymous"
     />
+    <!-- Bootstrap CSS for layout and styling -->
+    <!-- Bootstrap JavaScript for functionality like modals and dropdowns -->
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
       crossorigin="anonymous"
     ></script>
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+    <!-- Vue.js framework for reactive UI -->
     <title>Tutordays</title>
+    <!-- Webpage title -->
   </head>
   <body>
     <div id="App">
+      <!-- Vue.js application root element -->
       <header class="nav">
+        <!-- Header with branding, search, and checkout button -->
         <div class="container mb-4 mt-3">
           <div class="row">
             <div class="col-6">
+              <!-- Display sitename dynamically with Vue's `v-text` directive -->
               <h1 v-text="sitename"></h1>
             </div>
+            <!-- Search bar and checkout button with styling -->
             <div class="col-6" style="display: flex; justify-content: flex-end">
               <i class="fa-solid fa-magnifying-glass search-icon"></i>
               <input
@@ -41,7 +57,8 @@
                 class="form-control"
                 style="width: 200px; margin-right: 10px"
               />
-
+              <!-- Vue binds input to searchQuery variable -->
+              <!-- Checkout button with dynamic cart count and styling -->
               <button
                 v-on:click="showCheckout"
                 :disabled="itemsInTheCart === 0"
@@ -49,7 +66,9 @@
                 style="margin-left: 10px; background-color: green; color: white"
               >
                 {{ itemsInTheCart }}
+                <!-- Displays number of items in cart -->
                 <span class="fa-solid fa-cart-shopping"></span>
+                <!-- Cart icon -->
                 Checkout
               </button>
             </div>
@@ -58,14 +77,17 @@
       </header>
 
       <main>
+        <!-- Main product and checkout views with conditional rendering -->
         <!-- Products Section -->
         <div v-if="showProduct">
+          <!-- Products Section: displays products when showProduct is true -->
           <div class="container mb-3">
             <h2 class="productH2">
               Explore Quality Educational Products with Tutordays
             </h2>
           </div>
           <!-- Sorting Section -->
+          <!-- Sorting and ordering options for products -->
           <div class="container mb-3" class="bo">
             <h4>Sort Items by:</h4>
             <select
@@ -73,6 +95,7 @@
               class="form-select"
               aria-label="Sort select"
             >
+              <!-- Sorting options by product fields -->
               <option value="title">Title</option>
               <option value="description">Description</option>
               <option value="price">Price</option>
@@ -81,6 +104,7 @@
             </select>
           </div>
           <!-- Order Section -->
+          <!-- Dropdown for ordering items by ascending or descending -->
           <div class="container mb-3">
             <h4>Order Items by:</h4>
             <select
@@ -88,10 +112,12 @@
               class="form-select"
               aria-label="Order select"
             >
+              <!-- Vue binds selected order value to orderKey -->
               <option value="Ascending">Ascending</option>
               <option value="Descending">Descending</option>
             </select>
           </div>
+          <!-- Display list of products -->
           <div class="container">
             <div class="row">
               <div
@@ -99,6 +125,9 @@
                 v-for="product in filteredProducts"
                 :key="product.id"
               >
+                <!-- Loop through filtered products -->
+
+                <!-- Display product details and Buy Now button -->
                 <img
                   v-bind:src="product.image"
                   style="width: 100%; height: auto; object-fit: cover"
@@ -108,7 +137,7 @@
                 <p>Price: £{{ product.price }}</p>
                 <p>Stock: {{ product.availableInventory }}</p>
 
-                <!-- Star Rating -->
+                <!-- Star Rating Display -->
                 <div>
                   <span v-for="n in product.rating" :key="'filled-' + n"
                     >★</span
@@ -120,6 +149,7 @@
 
                 <div>
                   <span v-if="product.availableInventory === 0">
+                    <!-- Button disabled if product is out of stock -->
                     <button
                       class="btn add-to-cart-btn"
                       style="color: red"
@@ -133,17 +163,20 @@
                   <span
                     v-else-if="product.availableInventory > 0 && product.availableInventory < 5"
                   >
+                    <!-- Notify of low stock if below 5 items remaining -->
                     Only {{ product.availableInventory }} left!
                     <button
                       v-on:click="addItemToTheCart(product)"
                       class="btn add-to-cart-btn"
                       style="color: white; background-color: green"
                     >
+                      <!-- Add item to cart -->
                       Buy Now!
                     </button>
                   </span>
 
                   <span v-else-if="product.availableInventory >= 5">
+                    <!-- Display Buy Now button for items with sufficient stock -->
                     <button
                       v-on:click="addItemToTheCart(product)"
                       class="btn add-to-cart-btn"
@@ -158,15 +191,18 @@
           </div>
         </div>
 
+        <!-- Checkout Section: displays when showProduct is false -->
         <!-- Checkout Section -->
         <div v-else>
           <div class="container mb-3">
             <h1>Welcome to the Checkout page</h1>
 
             <div v-if="cart.length > 0">
+              <!-- Cart items list -->
               <h2>Your Cart:</h2>
               <ul>
                 <li v-for="(item, index) in cart" :key="item.id + '-' + index">
+                  <!-- Show product details with remove option -->
                   <img
                     v-bind:src="item.image"
                     alt="Product Image"
@@ -185,15 +221,19 @@
             </div>
 
             <div v-else>
+              <!-- Empty cart message -->
               <h2>Your Cart is Empty!</h2>
               <p>
                 Please add items to your cart before proceeding to checkout.
               </p>
             </div>
           </div>
+          <!-- Customer Information Form for Order -->
           <div class="container mb-3">
             <h2>Enter Your Information</h2>
             <form @submit.prevent="submitForm">
+              <!-- Submit form with validation -->
+              <!-- Input fields with validation feedback for each field -->
               <div class="mb-3">
                 <label for="firstName" class="form-label">First Name:</label>
                 <input
@@ -317,7 +357,7 @@
                 </div>
               </div>
 
-              <!-- Keeping the previous "Place Order" button -->
+              <!-- "Place Order" button -->
               <button
                 type="submit"
                 class="btn add-to-cart-btn"
@@ -352,7 +392,7 @@
         </div>
       </main>
     </div>
-
+    <!-- Vue instance initialisation -->
     <script>
       let webstore = new Vue({
         el: "#App",
@@ -387,9 +427,11 @@
           },
         },
         methods: {
+          // Toggles between product display and checkout view
           showCheckout: function () {
             this.showProduct = !this.showProduct; // Toggle between products and checkout view
           },
+          // Adds the selected product to the cart and decreases its available inventory
           addItemToTheCart: function (product) {
             this.cart.push({
               id: product.id,
@@ -400,9 +442,11 @@
             });
             product.availableInventory--; // Decrease inventory
           },
+          // Checks if the product can be added to the cart based on stock availability
           canAddToTheCart: function (product) {
             return product.availableInventory > 0; // Check product stock
           },
+          // Removes the selected item from the cart and restores the inventory
           removeItemFromCart: function (item, index) {
             const product = this.products.find((p) => p.id === item.id); // Find the product in the product list
             if (product) {
@@ -410,6 +454,7 @@
             }
             this.cart.splice(index, 1); // Remove the item at the specified index
           },
+          // Validates the name fields for correct formatting (letters and spaces only)
           validateName: function (field) {
             const nameRegex = /^[A-Za-z\s]+$/;
             if (!nameRegex.test(this.order[field])) {
@@ -418,6 +463,7 @@
               this.errors[field] = "";
             }
           },
+          // Validates the phone number field for numeric characters only
           validatePhoneNumber: function () {
             const phoneRegex = /^[0-9]+$/;
             if (!phoneRegex.test(this.order.phoneNumber)) {
@@ -427,6 +473,7 @@
               this.errors.phoneNumber = "";
             }
           },
+          // Submits the form after validating input fields and displays a success message or errors
           submitForm: function () {
             this.validateName("firstName");
             this.validateName("lastName");
@@ -442,12 +489,15 @@
               alert("Please correct the errors before submitting.");
             }
           },
+          // Retrieves the full name of a state based on its code
           getFullStateName: function (stateCode) {
             return this.states[stateCode] || "Unknown State"; // Get the full name of the state
           },
+          // Sets the rating for the specified product
           setRating: function (product, rating) {
             product.rating = rating; // Set the selected rating for the product
           },
+          // Filters products based on the search query in text and number fields
           filterProducts: function () {
             const query = this.searchQuery.toLowerCase();
 
@@ -469,9 +519,11 @@
           },
         },
         computed: {
+          // Returns the total number of items in the cart
           itemsInTheCart: function () {
             return this.cart.length; // Returns the number of items in the cart
           },
+          // Returns the sorted products based on the selected sort key and order
           sortedProducts: function () {
             // Sort products based on sortKey
             let sorted = this.filterProducts().sort((a, b) => {
@@ -494,6 +546,7 @@
 
             return sorted;
           },
+          // Returns the filtered and sorted products for display
           filteredProducts: function () {
             // Now this returns the filtered and sorted products
             return this.sortedProducts;
@@ -501,6 +554,7 @@
         },
       });
     </script>
+    <!--Footer-->
     <footer class>
       <p>
         Created by Arbaaz Ali Hussain M00872279 &copy; . Contact:
