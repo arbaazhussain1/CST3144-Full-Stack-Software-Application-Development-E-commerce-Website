@@ -136,7 +136,7 @@
                 <p>{{ product.description }}</p>
                 <p>Price: £{{ product.price }}</p>
                 <p>Location: {{ product.location }}</p>
-                <p> Available Stock: {{ product.availableInventory }}</p>
+                <p>Available Stock: {{ product.availableInventory }}</p>
 
                 <!-- Star Rating Display -->
                 <div>
@@ -477,6 +477,13 @@
           },
           // Submits the form after validating input fields and displays a success message or errors
           submitForm: function () {
+            if (this.cart.length === 0) {
+              alert(
+                "Your cart is empty! Please add items to your cart before submitting an order."
+              );
+              return;
+            }
+            // Validate name fields & phone number
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
@@ -501,13 +508,15 @@
           },
           // Filters products based on the search query in text and number fields
           filterProducts: function () {
-            const query = this.searchQuery ? this.searchQuery.toLowerCase() : ""; // Ensure query is a string
+            const query = this.searchQuery
+              ? this.searchQuery.toLowerCase()
+              : ""; // Ensure query is a string
 
             return this.products.filter((product) => {
               // Check if the query matches text-based fields
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
-                product.description.toLowerCase().includes(query) || 
+                product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
 
               // Check if the query matches number fields (price, stock, rating)
