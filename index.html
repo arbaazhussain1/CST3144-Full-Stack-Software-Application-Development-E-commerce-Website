@@ -34,7 +34,6 @@
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
     <!-- Vue.js framework for reactive UI -->
     <title>Tutordays</title>
-    <!-- Webpage title -->
   </head>
   <body>
     <div id="App">
@@ -96,9 +95,10 @@
               aria-label="Sort select"
             >
               <!-- Sorting options by product fields -->
-              <option value="title">Title</option>
+              <option value="subject">Subject</option>
               <option value="description">Description</option>
               <option value="price">Price</option>
+              <option value="location">Location</option>
               <option value="availableInventory">Available Items</option>
               <option value="rating">Rating</option>
             </select>
@@ -132,10 +132,11 @@
                   v-bind:src="product.image"
                   style="width: 100%; height: auto; object-fit: cover"
                 />
-                <h2>{{ product.title }}</h2>
+                <h2>{{ product.subject }}</h2>
                 <p>{{ product.description }}</p>
                 <p>Price: £{{ product.price }}</p>
-                <p>Stock: {{ product.availableInventory }}</p>
+                <p>Location: {{ product.location }}</p>
+                <p> Available Stock: {{ product.availableInventory }}</p>
 
                 <!-- Star Rating Display -->
                 <div>
@@ -208,7 +209,7 @@
                     alt="Product Image"
                     style="width: 50px; height: auto; margin-right: 10px"
                   />
-                  {{ item.title }} - Price: £{{ item.price }}
+                  {{ item.subject }} - Price: £{{ item.price }}
                   <button
                     v-on:click="removeItemFromCart(item, index)"
                     class="btn btn-danger btn-sm"
@@ -401,7 +402,7 @@
           showProduct: true, // Show products initially
           products: products, // Load products from products.js
           searchQuery: "", // Add searchQuery for search input
-          sortKey: "title", // Default sorting by title
+          sortKey: "subject", // Default sorting by subject
           orderKey: "Ascending", // Default order is Ascending
           cart: [],
           order: {
@@ -435,8 +436,9 @@
           addItemToTheCart: function (product) {
             this.cart.push({
               id: product.id,
-              title: product.title,
+              subject: product.subject,
               price: product.price,
+              location: product.location,
               quantity: 1,
               image: product.image,
             });
@@ -504,8 +506,9 @@
             return this.products.filter((product) => {
               // Check if the query matches text-based fields
               const isTextMatch =
-                product.title.toLowerCase().includes(query) ||
-                product.description.toLowerCase().includes(query);
+                product.subject.toLowerCase().includes(query) ||
+                product.description.toLowerCase().includes(query) || 
+                product.location.toLowerCase().includes(query);
 
               // Check if the query matches number fields (price, stock, rating)
               const isNumberMatch =
