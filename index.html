@@ -501,7 +501,7 @@
           },
           // Filters products based on the search query in text and number fields
           filterProducts: function () {
-            const query = this.searchQuery.toLowerCase();
+            const query = this.searchQuery ? this.searchQuery.toLowerCase() : ""; // Ensure query is a string
 
             return this.products.filter((product) => {
               // Check if the query matches text-based fields
