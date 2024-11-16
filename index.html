@@ -550,11 +550,6 @@
                 stockString.includes(query) ||
                 ratingString.includes(query);
 
-                // Debugging: Log matches for clarity
-        console.log(
-          `Query: ${query}, Product: ${product.subject}, Price: ${priceString}, Stock: ${stockString}, Rating: ${ratingString}, isTextMatch: ${isTextMatch}, isNumberMatch: ${isNumberMatch}`
-      );
-
               return isTextMatch || isNumberMatch;
             });
           },
