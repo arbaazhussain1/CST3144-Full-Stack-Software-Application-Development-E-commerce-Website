@@ -478,40 +478,46 @@
           // Submits the form after validating input fields and displays a success message or errors
           submitForm: function () {
             if (this.cart.length === 0) {
-                alert("Your cart is empty! Please add items to your cart before submitting an order.");
-                return;
+              alert(
+                "Your cart is empty! Please add items to your cart before submitting an order."
+              );
+              return;
             }
             // Validate name fields & phone number
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
-        
+
             if (
-                !this.errors.firstName &&
-                !this.errors.lastName &&
-                !this.errors.phoneNumber
+              !this.errors.firstName &&
+              !this.errors.lastName &&
+              !this.errors.phoneNumber
             ) {
-                alert("Congratulations! Your Order Has Been Successfully Submitted!");
-                alert("Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!");
-        
-                // Reset order form and cart
-                this.order = {
-                    firstName: "",
-                    lastName: "",
-                    address: "",
-                    city: "",
-                    zip: "",
-                    state: "",
-                    method: "Home",
-                    gift: false,
-                };
-        
-                this.cart = []; // Clear the cart
-                this.showProduct = true; // Navigate back to the product selection view
+              alert(
+                "Congratulations! Your Order Has Been Successfully Submitted!"
+              );
+              alert(
+                "Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
+              );
+
+              // Reset order form and cart
+              this.order = {
+                firstName: "",
+                lastName: "",
+                address: "",
+                city: "",
+                zip: "",
+                state: "",
+                method: "Home",
+                gift: false,
+              };
+
+              this.cart = []; // Clear the cart
+              this.showProduct = true; // Navigate back to the product selection view
             } else {
-                alert("Please Correct The Errors Before Submitting!");
+              alert("Please Correct The Errors Before Submitting!");
             }
-        },
+          },
           // Retrieves the full name of a state based on its code
           getFullStateName: function (stateCode) {
             return this.states[stateCode] || "Unknown State"; // Get the full name of the state
@@ -524,21 +530,30 @@
           filterProducts: function () {
             const query = this.searchQuery
               ? this.searchQuery.toLowerCase()
-              : ""; // Ensure query is a string
+              : ""; // Ensure query is lowercase for case-insensitive matching
 
             return this.products.filter((product) => {
-              // Check if the query matches text-based fields
+              // Convert numeric fields to strings for partial matching
+              const priceString = product.price.toString();
+              const stockString = product.availableInventory.toString();
+              const ratingString = product.rating.toString();
+
+              // Check if the query matches any text-based fields (subject, description, location)
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
 
-              // Check if the query matches number fields (price, stock, rating)
+              // Check if the query matches any numeric fields (price, stock, rating) as part of the string
               const isNumberMatch =
-                !isNaN(query) &&
-                (product.price === parseFloat(query) ||
-                  product.availableInventory === parseInt(query) ||
-                  product.rating === parseInt(query));
+                priceString.includes(query) ||
+                stockString.includes(query) ||
+                ratingString.includes(query);
+
+                // Debugging: Log matches for clarity
+        console.log(
+          `Query: ${query}, Product: ${product.subject}, Price: ${priceString}, Stock: ${stockString}, Rating: ${ratingString}, isTextMatch: ${isTextMatch}, isNumberMatch: ${isNumberMatch}`
+      );
 
               return isTextMatch || isNumberMatch;
             });
