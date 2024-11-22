@@ -507,9 +507,12 @@
               alert(
                 "Congratulations! Your Order Has Been Successfully Submitted!"
               );
-              alert(
-                "Your Order Is Being Processed!. Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
-              );
+              // Add a slight delay before the next alert
+              setTimeout(() => {
+                alert(
+                  "Your Order Is Being Processed!. Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
+                );
+              }, 500); // Delay of 500ms (half a second)
               this.order = {
                 firstName: "",
                 lastName: "",
