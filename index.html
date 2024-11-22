@@ -397,12 +397,12 @@
     </div>
     <!-- Vue instance initialisation -->
     <script>
-      const backendApiBaseUrl =
-        "https://tutordays.eu-west-2.elasticbeanstalk.com";
+     
       let webstore = new Vue({
         el: "#App",
         data: {
           sitename: "Tutordays",
+          backendApiBaseUrl: "https://tutordays.eu-west-2.elasticbeanstalk.com", 
           showProduct: true,
           products: [], // Initialize as empty array
           searchQuery: "",
@@ -435,7 +435,7 @@
           fetchData: async function () {
             try {
               const response = await fetch(
-                `${backendApiBaseUrl}/collections/products`
+                `${this.backendApiBaseUrl}/collections/products`
               );
               if (!response.ok) {
                 throw new Error(`Error fetching data: ${response.statusText}`);
