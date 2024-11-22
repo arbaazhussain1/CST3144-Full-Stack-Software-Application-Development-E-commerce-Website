@@ -458,7 +458,7 @@
               price: product.price,
               location: product.location,
               quantity: 1,
-              image: product.image,
+              image: `${this.backendApiBaseUrl}/${product.image}`,
             });
             product.availableInventory--;
           },
