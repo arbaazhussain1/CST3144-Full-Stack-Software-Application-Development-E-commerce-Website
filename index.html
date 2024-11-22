@@ -129,9 +129,11 @@
 
                 <!-- Display product details and Buy Now button -->
                 <img
-                  v-bind:src="product.image"
+                  :src="`${backendApiBaseUrl}/${product.image}`"
+                  alt="Product Image"
                   style="width: 100%; height: auto; object-fit: cover"
                 />
+
                 <h2>{{ product.subject }}</h2>
                 <p>{{ product.description }}</p>
                 <p>Price: £{{ product.price }}</p>
@@ -395,15 +397,17 @@
     </div>
     <!-- Vue instance initialisation -->
     <script>
+      const backendApiBaseUrl =
+        "http://tutordays.eu-west-2.elasticbeanstalk.com";
       let webstore = new Vue({
         el: "#App",
         data: {
           sitename: "Tutordays",
-          showProduct: true, // Show products initially
-          products: products, // Load products from products.js
-          searchQuery: "", // Add searchQuery for search input
-          sortKey: "subject", // Default sorting by subject
-          orderKey: "Ascending", // Default order is Ascending
+          showProduct: true,
+          products: [], // Initialize as empty array
+          searchQuery: "",
+          sortKey: "subject",
+          orderKey: "Ascending",
           cart: [],
           order: {
             firstName: "",
@@ -428,11 +432,25 @@
           },
         },
         methods: {
-          // Toggles between product display and checkout view
-          showCheckout: function () {
-            this.showProduct = !this.showProduct; // Toggle between products and checkout view
+          fetchData: async function () {
+            try {
+              const response = await fetch(
+                `${backendApiBaseUrl}/collections/products`
+              );
+              if (!response.ok) {
+                throw new Error(`Error fetching data: ${response.statusText}`);
+              }
+              const data = await response.json();
+              this.products = data;
+              console.log("Fetched products:", data);
+            } catch (error) {
+              console.error("Fetch error:", error);
+              alert("Failed to fetch products. Please try again later.");
+            }
           },
-          // Adds the selected product to the cart and decreases its available inventory
+          showCheckout: function () {
+            this.showProduct = !this.showProduct;
+          },
           addItemToTheCart: function (product) {
             this.cart.push({
               id: product.id,
@@ -442,21 +460,18 @@
               quantity: 1,
               image: product.image,
             });
-            product.availableInventory--; // Decrease inventory
+            product.availableInventory--;
           },
-          // Checks if the product can be added to the cart based on stock availability
           canAddToTheCart: function (product) {
-            return product.availableInventory > 0; // Check product stock
+            return product.availableInventory > 0;
           },
-          // Removes the selected item from the cart and restores the inventory
           removeItemFromCart: function (item, index) {
-            const product = this.products.find((p) => p.id === item.id); // Find the product in the product list
+            const product = this.products.find((p) => p.id === item.id);
             if (product) {
-              product.availableInventory++; // Restore the inventory when item is removed
+              product.availableInventory++;
             }
-            this.cart.splice(index, 1); // Remove the item at the specified index
+            this.cart.splice(index, 1);
           },
-          // Validates the name fields for correct formatting (letters and spaces only)
           validateName: function (field) {
             const nameRegex = /^[A-Za-z\s]+$/;
             if (!nameRegex.test(this.order[field])) {
@@ -465,7 +480,6 @@
               this.errors[field] = "";
             }
           },
-          // Validates the phone number field for numeric characters only
           validatePhoneNumber: function () {
             const phoneRegex = /^[0-9]+$/;
             if (!phoneRegex.test(this.order.phoneNumber)) {
@@ -475,7 +489,6 @@
               this.errors.phoneNumber = "";
             }
           },
-          // Submits the form after validating input fields and displays a success message or errors
           submitForm: function () {
             if (this.cart.length === 0) {
               alert(
@@ -483,11 +496,9 @@
               );
               return;
             }
-            // Validate name fields & phone number
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
-
             if (
               !this.errors.firstName &&
               !this.errors.lastName &&
@@ -496,11 +507,6 @@
               alert(
                 "Congratulations! Your Order Has Been Successfully Submitted!"
               );
-              alert(
-                "Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
-              );
-
-              // Reset order form and cart
               this.order = {
                 firstName: "",
                 lastName: "",
@@ -511,82 +517,70 @@
                 method: "Home",
                 gift: false,
               };
-
-              this.cart = []; // Clear the cart
-              this.showProduct = true; // Navigate back to the product selection view
+              this.cart = [];
+              this.showProduct = true;
             } else {
               alert("Please Correct The Errors Before Submitting!");
             }
           },
-          // Retrieves the full name of a state based on its code
           getFullStateName: function (stateCode) {
-            return this.states[stateCode] || "Unknown State"; // Get the full name of the state
+            return this.states[stateCode] || "Unknown State";
           },
-          // Sets the rating for the specified product
           setRating: function (product, rating) {
-            product.rating = rating; // Set the selected rating for the product
+            product.rating = rating;
           },
-          // Filters products based on the search query in text and number fields
           filterProducts: function () {
             const query = this.searchQuery
               ? this.searchQuery.toLowerCase()
-              : ""; // Ensure query is lowercase for case-insensitive matching
-
+              : "";
             return this.products.filter((product) => {
-              // Convert numeric fields to strings for partial matching
               const priceString = product.price.toString();
               const stockString = product.availableInventory.toString();
               const ratingString = product.rating.toString();
-
-              // Check if the query matches any text-based fields (subject, description, location)
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
-
-              // Check if the query matches any numeric fields (price, stock, rating) as part of the string
               const isNumberMatch =
                 priceString.includes(query) ||
                 stockString.includes(query) ||
                 ratingString.includes(query);
-
               return isTextMatch || isNumberMatch;
             });
           },
         },
         computed: {
-          // Returns the total number of items in the cart
           itemsInTheCart: function () {
-            return this.cart.length; // Returns the number of items in the cart
+            return this.cart.length;
           },
-          // Returns the sorted products based on the selected sort key and order
           sortedProducts: function () {
-            // Sort products based on sortKey
             let sorted = this.filterProducts().sort((a, b) => {
               if (
                 this.sortKey === "price" ||
                 this.sortKey === "availableInventory" ||
                 this.sortKey === "rating"
               ) {
-                return a[this.sortKey] - b[this.sortKey]; // Sorting numbers
+                return a[this.sortKey] - b[this.sortKey];
               } else {
-                // Sorting strings
                 return a[this.sortKey].localeCompare(b[this.sortKey]);
               }
             });
-
-            // Reverse the order if Descending is selected
             if (this.orderKey === "Descending") {
               sorted.reverse();
             }
-
             return sorted;
           },
-          // Returns the filtered and sorted products for display
           filteredProducts: function () {
-            // Now this returns the filtered and sorted products
-            return this.sortedProducts;
+            const query = this.searchQuery.toLowerCase();
+            return this.products.filter(
+              (product) =>
+                product.subject.toLowerCase().includes(query) ||
+                product.description.toLowerCase().includes(query)
+            );
           },
+        },
+        mounted() {
+          this.fetchData();
         },
       });
     </script>
