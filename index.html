@@ -583,18 +583,11 @@
           filteredProducts() {
             const query = this.searchQuery.toLowerCase();
             return this.products.filter((product) => {
-              const priceString = product.price.toString();
-              const stockString = product.availableInventory.toString();
-              const ratingString = product.rating.toString();
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
-              const isNumberMatch =
-                priceString.includes(query) ||
-                stockString.includes(query) ||
-                ratingString.includes(query);
-              return isTextMatch || isNumberMatch;
+              return isTextMatch;
             });
           },
         },
