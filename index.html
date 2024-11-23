@@ -447,26 +447,6 @@
               alert("Failed to fetch products. Please try again later.");
             }
           },
-          fetchFilteredData: async function () {
-            try {
-              const max = 10; // Example max value
-              const sortKey = this.sortKey;
-              const orderKey = this.orderKey === "Ascending" ? "asc" : "desc";
-          
-              const response = await fetch(
-                `${this.backendApiBaseUrl}/collections/products/${max}/${sortKey}/${orderKey}`
-              );
-              if (!response.ok) {
-                throw new Error(`Error fetching data: ${response.statusText}`);
-              }
-              const data = await response.json();
-              this.products = data;
-              console.log("Fetched products:", data);
-            } catch (error) {
-              console.error("Fetch error:", error);
-              alert("Failed to fetch products. Please try again later.");
-            }
-          },          
           showCheckout: function () {
             this.showProduct = !this.showProduct;
           },
