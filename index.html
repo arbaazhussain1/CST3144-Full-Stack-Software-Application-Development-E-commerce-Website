@@ -553,30 +553,21 @@
             return this.cart.length;
           },
           sortedProducts() {
-            // Use filteredProducts if searchQuery is active; otherwise, use full product list
-            const sourceArray = this.searchQuery
-              ? this.filteredProducts
-              : this.products;
-
-            return sourceArray.slice().sort((a, b) => {
-              let comparison = 0;
-
+            return [...this.products].sort((a, b) => {
+              let result = 0;
+        
               // Handle numeric sorting for 'price' and 'availableInventory'
-              if (
-                this.sortKey === "price" ||
-                this.sortKey === "availableInventory" ||
-                this.sortKey === "rating"
-              ) {
-                comparison = a[this.sortKey] - b[this.sortKey];
+              if (this.sortKey === "price" || this.sortKey === "availableInventory" || this.sortKey === "rating") {
+                result = a[this.sortKey] - b[this.sortKey];
               } else {
                 // Handle string sorting for other attributes
                 const aValue = a[this.sortKey]?.toString().toLowerCase() || "";
                 const bValue = b[this.sortKey]?.toString().toLowerCase() || "";
-                comparison = aValue.localeCompare(bValue);
+                result = aValue.localeCompare(bValue);
               }
-
+        
               // Adjust order based on 'Ascending' or 'Descending'
-              return this.orderKey === "Ascending" ? comparison : -comparison;
+              return this.orderKey === "Ascending" ? result : -result;
             });
           },
           filteredProducts() {
@@ -596,7 +587,7 @@
               return isTextMatch || isNumberMatch;
             });
           },
-        },
+        },        
         mounted() {
           this.fetchData();
         },
