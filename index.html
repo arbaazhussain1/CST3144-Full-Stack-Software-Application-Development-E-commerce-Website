@@ -365,6 +365,7 @@
                 type="submit"
                 class="btn add-to-cart-btn"
                 style="color: white"
+                v-on:click="submitOrder"
               >
                 Place Order
               </button>
@@ -454,6 +455,69 @@
             } catch (error) {
               console.error("Fetch error:", error);
               alert("Failed to fetch products. Please try again later.");
+            }
+          },
+          async submitOrder() {
+            if (this.cart.length === 0) {
+              alert(
+                "Your cart is empty! Please add items to the cart before placing an order."
+              );
+              return;
+            }
+            const orderPayload = {
+              user: {
+                firstName: this.order.firstName,
+                lastName: this.order.lastName,
+                phoneNumber: this.order.phoneNumber,
+                address: this.order.address,
+                city: this.order.city,
+                state: this.order.state,
+                zip: this.order.zip,
+                method: this.order.method,
+                gift: this.order.gift,
+              },
+              productsIDs: this.cart.map((item) => item.id),
+              numberOfSpaces: this.cart.map((item) => item.quantity),
+            };
+            try {
+              const response = await fetch(
+                `${this.backendApiBaseUrl}/collections/orders`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(orderPayload),
+                }
+              );
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error submitting order:", errorData);
+                alert(`Error submitting order: ${errorData.error}`);
+                return;
+              }
+              const responseData = await response.json();
+              console.log("Order submitted successfully:", responseData);
+              alert("Your order has been placed successfully!");
+              this.cart = [];
+              this.order = {
+                firstName: "",
+                lastName: "",
+                phoneNumber: "",
+                address: "",
+                city: "",
+                state: "",
+                zip: "",
+                method: "Home",
+                gift: false,
+              };
+              this.showProduct = true;
+            } catch (error) {
+              console.error(
+                "Network or server error during order submission:",
+                error
+              );
+              alert(
+                "An error occurred while submitting your order. Please try again."
+              );
             }
           },
           showCheckout: function () {
@@ -568,8 +632,10 @@
             }
             return [...sourceArray].sort((a, b) => {
               let result = 0;
-          
-              if (["price", "availableInventory", "rating"].includes(this.sortKey)) {
+
+              if (
+                ["price", "availableInventory", "rating"].includes(this.sortKey)
+              ) {
                 const aValue = a[this.sortKey] ?? 0;
                 const bValue = b[this.sortKey] ?? 0;
                 result = aValue - bValue;
@@ -578,7 +644,7 @@
                 const bValue = b[this.sortKey]?.toString().toLowerCase() || "";
                 result = aValue.localeCompare(bValue);
               }
-          
+
               return this.orderKey === "Ascending" ? result : -result;
             });
           },
