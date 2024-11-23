@@ -440,8 +440,17 @@
                 throw new Error(`Error fetching data: ${response.statusText}`);
               }
               const data = await response.json();
-              this.products = data;
-              console.log("Fetched products:", data);
+
+              this.products = data.map((product) => ({
+                ...product,
+                price: Number(product.price) || 0,
+                availableInventory: Number(product.availableInventory) || 0,
+                rating: Number(product.rating) || 0,
+                subject: product.subject || "",
+                description: product.description || "",
+                location: product.location || "",
+              }));
+              console.log("Fetched products:", this.products);
             } catch (error) {
               console.error("Fetch error:", error);
               alert("Failed to fetch products. Please try again later.");
@@ -553,20 +562,21 @@
             return this.cart.length;
           },
           sortedProducts() {
-            return [...this.products].sort((a, b) => {
+            const sourceArray = this.filteredProducts;
+            if (!sourceArray || sourceArray.length === 0) {
+              return [];
+            }
+            return [...sourceArray].sort((a, b) => {
               let result = 0;
-        
-              // Handle numeric sorting for 'price' and 'availableInventory'
+          
               if (this.sortKey === "price" || this.sortKey === "availableInventory" || this.sortKey === "rating") {
                 result = a[this.sortKey] - b[this.sortKey];
               } else {
-                // Handle string sorting for other attributes
                 const aValue = a[this.sortKey]?.toString().toLowerCase() || "";
                 const bValue = b[this.sortKey]?.toString().toLowerCase() || "";
                 result = aValue.localeCompare(bValue);
               }
-        
-              // Adjust order based on 'Ascending' or 'Descending'
+          
               return this.orderKey === "Ascending" ? result : -result;
             });
           },
@@ -587,7 +597,7 @@
               return isTextMatch || isNumberMatch;
             });
           },
-        },        
+        },
         mounted() {
           this.fetchData();
         },
