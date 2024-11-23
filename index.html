@@ -549,38 +549,56 @@
           },
         },
         computed: {
-          itemsInTheCart: function () {
+          itemsInTheCart() {
             return this.cart.length;
           },
-          sortedProducts: function () {
-            let sorted = this.filterProducts().sort((a, b) => {
+          sortedProducts() {
+            // Use filteredProducts if searchQuery is active; otherwise, use full product list
+            const sourceArray = this.searchQuery
+              ? this.filteredProducts
+              : this.products;
+
+            return sourceArray.slice().sort((a, b) => {
+              let comparison = 0;
+
+              // Handle numeric sorting for 'price' and 'availableInventory'
               if (
                 this.sortKey === "price" ||
                 this.sortKey === "availableInventory" ||
                 this.sortKey === "rating"
               ) {
-                return a[this.sortKey] - b[this.sortKey];
+                comparison = a[this.sortKey] - b[this.sortKey];
               } else {
-                return a[this.sortKey].localeCompare(b[this.sortKey]);
+                // Handle string sorting for other attributes
+                const aValue = a[this.sortKey]?.toString().toLowerCase() || "";
+                const bValue = b[this.sortKey]?.toString().toLowerCase() || "";
+                comparison = aValue.localeCompare(bValue);
               }
+
+              // Adjust order based on 'Ascending' or 'Descending'
+              return this.orderKey === "Ascending" ? comparison : -comparison;
             });
-            if (this.orderKey === "Descending") {
-              sorted.reverse();
-            }
-            return sorted;
           },
-          filteredProducts: function () {
+          filteredProducts() {
             const query = this.searchQuery.toLowerCase();
-            return this.products.filter(
-              (product) =>
+            return this.products.filter((product) => {
+              const priceString = product.price.toString();
+              const stockString = product.availableInventory.toString();
+              const ratingString = product.rating.toString();
+              const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
-                product.description.toLowerCase().includes(query)
-            );
+                product.description.toLowerCase().includes(query) ||
+                product.location.toLowerCase().includes(query);
+              const isNumberMatch =
+                priceString.includes(query) ||
+                stockString.includes(query) ||
+                ratingString.includes(query);
+              return isTextMatch || isNumberMatch;
+            });
           },
         },
         mounted() {
           this.fetchData();
-          this.fetchFilteredData();
         },
       });
     </script>
