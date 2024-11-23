@@ -457,6 +457,70 @@
               alert("Failed to fetch products. Please try again later.");
             }
           },
+          // Search products by query using the backend
+          async fetchSearchResults(query) {
+            if (!query.trim()) {
+              await this.fetchData(); // Reset to the full list if query is empty
+              return;
+            }
+            try {
+              const response = await fetch(
+                `${
+                  this.backendApiBaseUrl
+                }/collections/products/search/${encodeURIComponent(query)}`
+              );
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error searching products:", errorData);
+                alert(`Error searching products: ${errorData.message}`);
+                return;
+              }
+              const results = await response.json();
+              console.log("Search results:", results);
+              this.products = results; // Update the product list with search results
+            } catch (error) {
+              console.error("Error fetching search results:", error);
+              alert(
+                "An error occurred while searching for products. Please try again."
+              );
+            }
+          },
+          // PUT method to update a product
+          updateProduct: async function (productId, updatedData) {
+            try {
+              const response = await fetch(
+                `${this.backendApiBaseUrl}/collections/products/${productId}`,
+                {
+                  method: "PUT", // HTTP method
+                  headers: {
+                    "Content-Type": "application/json", // Specify JSON content
+                  },
+                  body: JSON.stringify(updatedData), // Data to send in the request
+                }
+              );
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error updating product:", errorData);
+                alert(`Error updating product: ${errorData.error}`);
+                return;
+              }
+              const responseData = await response.json();
+              console.log("Product updated successfully:", responseData);
+              alert("Product updated successfully!");
+
+              // Optional: Refresh the product list to reflect changes
+              await this.fetchData();
+            } catch (error) {
+              console.error(
+                "Network or server error during product update:",
+                error
+              );
+              alert(
+                "An error occurred while updating the product. Please try again."
+              );
+            }
+          },
           async submitOrder() {
             if (this.cart.length === 0) {
               alert(
@@ -602,21 +666,24 @@
             product.rating = rating;
           },
           filterProducts: function () {
-            const query = this.searchQuery
-              ? this.searchQuery.toLowerCase()
-              : "";
+            const query = this.searchQuery.trim().toLowerCase(); // Convert query to lowercase for case-insensitive text search
+            const queryAsNumber = parseFloat(query); // Try converting the query to a number
+
             return this.products.filter((product) => {
-              const priceString = product.price.toString();
-              const stockString = product.availableInventory.toString();
-              const ratingString = product.rating.toString();
+              // Check for text match (case-insensitive)
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
+
+              // Check for numeric match if the query is a valid number
               const isNumberMatch =
-                priceString.includes(query) ||
-                stockString.includes(query) ||
-                ratingString.includes(query);
+                !isNaN(queryAsNumber) && // Ensure the query can be treated as a valid number
+                (product.price === queryAsNumber || // Match price exactly
+                  product.availableInventory === queryAsNumber || // Match inventory exactly
+                  product.rating === queryAsNumber); // Match rating exactly
+
+              // Return true if either text or number matches
               return isTextMatch || isNumberMatch;
             });
           },
@@ -657,6 +724,11 @@
                 product.location.toLowerCase().includes(query);
               return isTextMatch;
             });
+          },
+        },
+        watch: {
+          searchQuery: function (newQuery) {
+            this.fetchSearchResults(newQuery); // Trigger search when query changes
           },
         },
         mounted() {
