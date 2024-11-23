@@ -122,7 +122,7 @@
             <div class="row">
               <div
                 class="col-4"
-                v-for="product in filteredProducts"
+                v-for="product in sortedProducts"
                 :key="product.id"
               >
                 <!-- Loop through filtered products -->
@@ -569,8 +569,10 @@
             return [...sourceArray].sort((a, b) => {
               let result = 0;
           
-              if (this.sortKey === "price" || this.sortKey === "availableInventory" || this.sortKey === "rating") {
-                result = a[this.sortKey] - b[this.sortKey];
+              if (["price", "availableInventory", "rating"].includes(this.sortKey)) {
+                const aValue = a[this.sortKey] ?? 0;
+                const bValue = b[this.sortKey] ?? 0;
+                result = aValue - bValue;
               } else {
                 const aValue = a[this.sortKey]?.toString().toLowerCase() || "";
                 const bValue = b[this.sortKey]?.toString().toLowerCase() || "";
