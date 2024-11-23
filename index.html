@@ -447,6 +447,15 @@
               alert("Failed to fetch products. Please try again later.");
             }
           },
+          async fetchFilteredProducts(field, value, sort, order) {
+            try {
+              const response = await fetch(`${this.backendApiBaseUrl}/collections/products/filter?field=${field}&value=${value}&sort=${sort}&order=${order}`);
+              if (!response.ok) throw new Error("Error fetching filtered products");
+              this.products = await response.json();
+            } catch (error) {
+              console.error(error);
+            }
+          },
           showCheckout: function () {
             this.showProduct = !this.showProduct;
           },
