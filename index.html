@@ -498,33 +498,62 @@
                   body: JSON.stringify(updatedData), // Data to send in the request
                 }
               );
-          
+
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error updating product:", errorData);
                 alert(`Error updating product: ${errorData.error}`);
                 return;
               }
-          
+
               const responseData = await response.json();
               console.log("Product updated successfully:", responseData);
-          
+
               // Fetch the updated product list after the PUT request
               await this.fetchData(); // Ensure this function fetches all updated products from the server
               alert("Product updated successfully and inventory refreshed!");
-          
             } catch (error) {
-              console.error("Network or server error during product update:", error);
-              alert("An error occurred while updating the product. Please try again.");
+              console.error(
+                "Network or server error during product update:",
+                error
+              );
+              alert(
+                "An error occurred while updating the product. Please try again."
+              );
             }
-          },                   
+          },
+          async updateInventory(restore) {
+            const productIds = this.cart.map((item) => item.id); // IDs of products in the cart
+            const quantities = this.cart.map((item) => item.quantity); // Corresponding quantities
+        
+            try {
+              const response = await fetch(`${this.backendApiBaseUrl}/collections/products`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productIds, quantities, restore }),
+              });
+        
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error updating inventory:", errorData);
+                alert(`Error updating inventory: ${errorData.error}`);
+                return;
+              }
+        
+              const responseData = await response.json();
+              console.log("Inventory update successful:", responseData);
+            } catch (error) {
+              console.error("Error during inventory update:", error);
+              alert("An error occurred while updating inventory. Please try again.");
+            }
+          },
           async submitOrder() {
             if (this.cart.length === 0) {
-              alert(
-                "Your cart is empty! Please add items to the cart before placing an order."
-              );
+              alert("Your cart is empty! Please add items to the cart before placing an order.");
               return;
             }
+          
+            // Step 1: Prepare the order payload
             const orderPayload = {
               user: {
                 firstName: this.order.firstName,
@@ -540,23 +569,31 @@
               productsIDs: this.cart.map((item) => item.id),
               numberOfSpaces: this.cart.map((item) => item.quantity),
             };
+          
             try {
-              const response = await fetch(
-                `${this.backendApiBaseUrl}/collections/orders`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(orderPayload),
-                }
-              );
+              // Step 2: Submit the order via POST
+              const response = await fetch(`${this.backendApiBaseUrl}/collections/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderPayload),
+              });
+          
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error submitting order:", errorData);
                 alert(`Error submitting order: ${errorData.error}`);
                 return;
               }
-              const responseData = await response.json();
-              console.log("Order submitted successfully:", responseData);
+          
+              console.log("Order submitted successfully:", await response.json());
+          
+              // Step 3: Update inventory via PUT
+              await this.updateInventory(false); // Deduct inventory after order creation
+          
+              // Step 4: Refresh product data
+              await this.fetchData();
+          
+              // Step 5: Clear the cart and reset the form
               alert("Your order has been placed successfully!");
               this.cart = [];
               this.order = {
@@ -570,17 +607,14 @@
                 method: "Home",
                 gift: false,
               };
-              this.showProduct = true;
+          
+              this.showProduct = true; // Return to product listing
             } catch (error) {
-              console.error(
-                "Network or server error during order submission:",
-                error
-              );
-              alert(
-                "An error occurred while submitting your order. Please try again."
-              );
+              console.error("Error during submitOrder process:", error);
+              alert("An error occurred while processing your order. Please try again.");
             }
           },
+          
           showCheckout: function () {
             this.showProduct = !this.showProduct;
           },
@@ -665,25 +699,25 @@
           filterProducts: function () {
             const query = this.searchQuery.trim().toLowerCase(); // Clean and standardize query for text matching
             const queryAsNumber = parseFloat(this.searchQuery); // Convert query to a number (if possible)
-          
+
             return this.products.filter((product) => {
               // Check if query matches any text fields (case-insensitive)
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
-          
+
               // Check if query matches any numeric fields (partial or exact match)
               const isNumberMatch =
                 !isNaN(queryAsNumber) && // Ensure the query is a valid number
                 (product.price.toString().includes(query) || // Partial match in price
                   product.availableInventory.toString().includes(query) || // Partial match in available inventory
                   product.rating.toString().includes(query)); // Partial match in rating
-          
+
               // Return true if the query matches either text or numeric fields
               return isTextMatch || isNumberMatch;
             });
-          },          
+          },
         },
         computed: {
           itemsInTheCart() {
