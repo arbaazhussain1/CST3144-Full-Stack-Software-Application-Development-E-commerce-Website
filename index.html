@@ -442,14 +442,15 @@
                 throw new Error(`Error fetching data: ${response.statusText}`);
               }
               const data = await response.json();
-              console.log("Raw API Response:", data); // Log raw data
+
+              // Ensure fields like `price`, `availableInventory`, and `rating` are numbers
               this.products = data.map((product) => ({
                 ...product,
-                price: product.price ? parseFloat(product.price) : 0,
+                price: product.price ? parseFloat(product.price) : 0, // Convert to number
                 availableInventory: product.availableInventory
                   ? parseInt(product.availableInventory, 10)
-                  : 0,
-                rating: product.rating ? parseInt(product.rating, 10) : 0,
+                  : 0, // Convert to integer
+                rating: product.rating ? parseInt(product.rating, 10) : 0, // Convert to integer
                 subject: product.subject || "",
                 description: product.description || "",
                 location: product.location || "",
@@ -479,7 +480,7 @@
                 return;
               }
               const results = await response.json();
-              console.log("Search results:", results);
+              console.log("Search results from backend:", results); // Log the results
               this.products = results; // Update the product list with search results
             } catch (error) {
               console.error("Error fetching search results:", error);
@@ -488,6 +489,7 @@
               );
             }
           },
+
           // PUT method to update a product
           updateProduct: async function (productId, updatedData) {
             try {
@@ -713,24 +715,21 @@
             product.rating = rating;
           },
           filterProducts: function () {
-            const query = this.searchQuery.trim().toLowerCase(); // Clean and standardize query for text matching
-            const queryAsNumber = parseFloat(this.searchQuery); // Convert query to a number (if possible)
+            const query = this.searchQuery.trim().toLowerCase(); // Clean the input
+            const queryAsNumber = parseFloat(this.searchQuery); // Convert to number
 
             return this.products.filter((product) => {
-              // Check if query matches any text fields (case-insensitive)
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
 
-              // Check if query matches any numeric fields (partial or exact match)
               const isNumberMatch =
-                !isNaN(queryAsNumber) && // Ensure the query is a valid number
-                (product.price.toString().includes(query) || // Partial match in price
-                  product.availableInventory.toString().includes(query) || // Partial match in available inventory
-                  product.rating.toString().includes(query)); // Partial match in rating
+                !isNaN(queryAsNumber) &&
+                (parseFloat(product.price) == queryAsNumber || // Convert price to number
+                  parseInt(product.availableInventory, 10) == queryAsNumber || // Convert inventory to number
+                  parseInt(product.rating, 10) == queryAsNumber); // Convert rating to number
 
-              // Return true if the query matches either text or numeric fields
               return isTextMatch || isNumberMatch;
             });
           },
@@ -763,14 +762,10 @@
             });
           },
           filteredProducts() {
-            const query = this.searchQuery.toLowerCase();
-            return this.products.filter((product) => {
-              const isTextMatch =
-                product.subject.toLowerCase().includes(query) ||
-                product.description.toLowerCase().includes(query) ||
-                product.location.toLowerCase().includes(query);
-              return isTextMatch;
-            });
+            if (!this.searchQuery.trim()) {
+              return this.products; // Show all products if no search query
+            }
+            return this.products; // Backend already filters, so use backend results
           },
           isFormValid() {
             return (
