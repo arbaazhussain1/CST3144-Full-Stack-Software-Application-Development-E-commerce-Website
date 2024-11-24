@@ -498,29 +498,26 @@
                   body: JSON.stringify(updatedData), // Data to send in the request
                 }
               );
-
+          
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error updating product:", errorData);
                 alert(`Error updating product: ${errorData.error}`);
                 return;
               }
+          
               const responseData = await response.json();
               console.log("Product updated successfully:", responseData);
-              alert("Product updated successfully!");
-
-              // Optional: Refresh the product list to reflect changes
-              await this.fetchData();
+          
+              // Fetch the updated product list after the PUT request
+              await this.fetchData(); // Ensure this function fetches all updated products from the server
+              alert("Product updated successfully and inventory refreshed!");
+          
             } catch (error) {
-              console.error(
-                "Network or server error during product update:",
-                error
-              );
-              alert(
-                "An error occurred while updating the product. Please try again."
-              );
+              console.error("Network or server error during product update:", error);
+              alert("An error occurred while updating the product. Please try again.");
             }
-          },
+          },                   
           async submitOrder() {
             if (this.cart.length === 0) {
               alert(
@@ -666,27 +663,27 @@
             product.rating = rating;
           },
           filterProducts: function () {
-            const query = this.searchQuery.trim().toLowerCase(); // Convert query to lowercase for case-insensitive text search
-            const queryAsNumber = parseFloat(query); // Try converting the query to a number
-
+            const query = this.searchQuery.trim().toLowerCase(); // Clean and standardize query for text matching
+            const queryAsNumber = parseFloat(this.searchQuery); // Convert query to a number (if possible)
+          
             return this.products.filter((product) => {
-              // Check for text match (case-insensitive)
+              // Check if query matches any text fields (case-insensitive)
               const isTextMatch =
                 product.subject.toLowerCase().includes(query) ||
                 product.description.toLowerCase().includes(query) ||
                 product.location.toLowerCase().includes(query);
-
-              // Check for numeric match if the query is a valid number
+          
+              // Check if query matches any numeric fields (partial or exact match)
               const isNumberMatch =
-                !isNaN(queryAsNumber) && // Ensure the query can be treated as a valid number
-                (product.price === queryAsNumber || // Match price exactly
-                  product.availableInventory === queryAsNumber || // Match inventory exactly
-                  product.rating === queryAsNumber); // Match rating exactly
-
-              // Return true if either text or number matches
+                !isNaN(queryAsNumber) && // Ensure the query is a valid number
+                (product.price.toString().includes(query) || // Partial match in price
+                  product.availableInventory.toString().includes(query) || // Partial match in available inventory
+                  product.rating.toString().includes(query)); // Partial match in rating
+          
+              // Return true if the query matches either text or numeric fields
               return isTextMatch || isNumberMatch;
             });
-          },
+          },          
         },
         computed: {
           itemsInTheCart() {
