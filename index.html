@@ -458,7 +458,7 @@
               console.log("Processed Products:", this.products); // Log processed data
             } catch (error) {
               console.error("Fetch error:", error);
-              alert("Failed to fetch products. Please try again later.");
+              console.log("Failed to fetch products. Please try again later.");
             }
           },
           // Search products by query using the backend
@@ -483,7 +483,7 @@
               this.products = results; // Update the product list with search results
             } catch (error) {
               console.error("Error fetching search results:", error);
-              alert(
+              console.log(
                 "An error occurred while searching for products. Please try again."
               );
             }
@@ -506,7 +506,7 @@
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error updating product:", errorData);
-                alert(`Error updating product: ${errorData.error}`);
+                console.log(`Error updating product: ${errorData.error}`);
                 return;
               }
 
@@ -515,13 +515,15 @@
 
               // Fetch the updated product list after the PUT request
               await this.fetchData(); // Ensure this function fetches all updated products from the server
-              alert("Product updated successfully and inventory refreshed!");
+              console.log(
+                "Product updated successfully and inventory refreshed!"
+              );
             } catch (error) {
               console.error(
                 "Network or server error during product update:",
                 error
               );
-              alert(
+              console.log(
                 "An error occurred while updating the product. Please try again."
               );
             }
@@ -550,7 +552,9 @@
                 const errorData = await response.json();
                 console.error("Error updating inventory:", errorData);
                 // Optionally, show a generic message
-                alert("Unable to update inventory. Please try again later.");
+                console.log(
+                  "Unable to update inventory. Please try again later."
+                );
                 return;
               }
               const responseData = await response.json();
@@ -558,7 +562,9 @@
             } catch (error) {
               console.error("Error during inventory update:", error);
               // Optionally, show a generic error message
-              alert("An unexpected error occurred while updating inventory.");
+              console.log(
+                "An unexpected error occurred while updating inventory."
+              );
             }
           },
           async submitOrder() {
@@ -617,7 +623,7 @@
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error submitting order:", errorData);
-                alert(`Error submitting order: ${errorData.error}`);
+                console.log(`Error submitting order: ${errorData.error}`);
                 return;
               }
 
@@ -633,7 +639,8 @@
               await this.fetchData();
 
               // Clear the cart and reset the form
-              alert("Your order has been placed successfully!");
+          console.log("Your order has been placed successfully!");
+
               this.cart = [];
               this.order = {
                 firstName: "",
@@ -649,7 +656,7 @@
               this.showProduct = true; // Switch back to product listing
             } catch (error) {
               console.error("Error during order submission:", error);
-              alert(
+              console.log(
                 "An error occurred while processing your order. Please try again later."
               );
             }
@@ -700,39 +707,43 @@
             }
           },
           submitForm: function () {
-            if (this.cart.length === 0) {
-              alert(
-                "Your cart is empty! Please add items to your cart before submitting an order."
-              );
-              return;
-            }
+            // Validate form fields
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
+          
+            // Check if the form has errors or the cart is empty
             if (
-              !this.errors.firstName &&
-              !this.errors.lastName &&
-              !this.errors.phoneNumber
+              this.errors.firstName ||
+              this.errors.lastName ||
+              this.errors.phoneNumber ||
+              this.cart.length === 0
             ) {
-              alert(
-                "Congratulations! Your Order Has Been Successfully Submitted!  Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
-              );
-              this.order = {
-                firstName: "",
-                lastName: "",
-                address: "",
-                city: "",
-                zip: "",
-                state: "",
-                method: "Home",
-                gift: false,
-              };
-              this.cart = [];
-              this.showProduct = true;
-            } else {
-              alert("Please Correct The Errors Before Submitting!");
+              // Alert user if validation fails or cart is empty
+              alert("Please Correct The Errors Or Add Items To The Cart Before Submitting!");
+              return; // Stop further execution
             }
-          },
+          
+            // If no errors, proceed with submission
+            alert(
+              "Congratulations! Your Order Has Been Successfully Submitted! Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
+            );
+          
+            // Clear form and cart
+            this.order = {
+              firstName: "",
+              lastName: "",
+              phoneNumber: "",
+              address: "",
+              city: "",
+              zip: "",
+              state: "",
+              method: "Home",
+              gift: false,
+            };
+            this.cart = [];
+            this.showProduct = true; // Switch back to product view
+          },          
           getFullStateName: function (stateCode) {
             return this.states[stateCode] || "Unknown State";
           },
