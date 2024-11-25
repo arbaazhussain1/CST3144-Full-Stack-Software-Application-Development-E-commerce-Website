@@ -435,32 +435,26 @@
         methods: {
           fetchData: async function () {
             try {
-              const response = await fetch(
-                `${this.backendApiBaseUrl}/collections/products`
-              );
+              const response = await fetch(`${this.backendApiBaseUrl}/collections/products`);
               if (!response.ok) {
                 throw new Error(`Error fetching data: ${response.statusText}`);
               }
               const data = await response.json();
-
-              // Ensure fields like `price`, `availableInventory`, and `rating` are numbers
+              console.log("Fetched products:", data); // Log the products fetched
               this.products = data.map((product) => ({
                 ...product,
-                price: product.price ? parseFloat(product.price) : 0, // Convert to number
+                price: product.price ? parseFloat(product.price) : 0,
                 availableInventory: product.availableInventory
                   ? parseInt(product.availableInventory, 10)
-                  : 0, // Convert to integer
-                rating: product.rating ? parseInt(product.rating, 10) : 0, // Convert to integer
-                subject: product.subject || "",
-                description: product.description || "",
-                location: product.location || "",
+                  : 0,
+                rating: product.rating ? parseInt(product.rating, 10) : 0,
               }));
-              console.log("Processed Products:", this.products); // Log processed data
             } catch (error) {
               console.error("Fetch error:", error);
-              console.log("Failed to fetch products. Please try again later.");
+              alert("Failed to fetch products. Please try again later.");
             }
           },
+          
           // Search products by query using the backend
           async fetchSearchResults(query) {
             if (!query.trim()) {
@@ -529,69 +523,55 @@
             }
           },
           async updateInventory(restore) {
-            const productIds = this.cart.map((item) => item.id); // IDs of products in the cart
-            const quantities = this.cart.map((item) => item.quantity); // Corresponding quantities
-
-            if (!productIds.length) {
-              // Log the issue for debugging but don't show the error to the user
-              console.warn(
-                "No product IDs found in the cart. Skipping inventory update."
-              );
-              return; // Exit early without calling the backend
-            }
             try {
-              const response = await fetch(
-                `${this.backendApiBaseUrl}/collections/products`,
-                {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ productIds, quantities, restore }),
-                }
-              );
-              if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error updating inventory:", errorData);
-                // Optionally, show a generic message
-                console.log(
-                  "Unable to update inventory. Please try again later."
+              for (const item of this.cart) {
+                const productId = item.id;
+                const quantityChange = restore ? item.quantity : -item.quantity;
+          
+                console.log("Sending inventory update for:", productId, "Change:", quantityChange);
+          
+                const response = await fetch(
+                  `${this.backendApiBaseUrl}/collections/products/${productId}`,
+                  {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ availableInventory: quantityChange }),
+                  }
                 );
-                return;
+          
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  console.error(`Error updating inventory for product ${productId}:`, errorData);
+                  throw new Error(`Failed to update inventory for product ${productId}`);
+                }
+          
+                console.log(`Inventory update successful for product ${productId}`);
               }
-              const responseData = await response.json();
-              console.log("Inventory update successful:", responseData);
             } catch (error) {
               console.error("Error during inventory update:", error);
-              // Optionally, show a generic error message
-              console.log(
-                "An unexpected error occurred while updating inventory."
-              );
+              alert("Failed to update inventory. Please try again later.");
             }
           },
+          
+          
+          
+          
           async submitOrder() {
-            // Validate all fields before proceeding
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
-
-            // Check if there are any validation errors
-            const hasErrors =
-              this.errors.firstName ||
-              this.errors.lastName ||
-              this.errors.phoneNumber;
-
+          
+            const hasErrors = this.errors.firstName || this.errors.lastName || this.errors.phoneNumber;
             if (hasErrors || !this.isFormValid) {
-              // Stop the submission and notify the user
               alert("Please correct the errors before submitting the form!");
-              return; // Prevent further execution
-            }
-
-            // Check if the cart is empty
-            if (this.cart.length === 0) {
-              alert(
-                "Your cart is empty! Please add items to the cart before placing an order."
-              );
               return;
             }
+          
+            if (this.cart.length === 0) {
+              alert("Your cart is empty! Please add items to the cart before placing an order.");
+              return;
+            }
+          
             try {
               // Prepare the order payload
               const orderPayload = {
@@ -609,38 +589,31 @@
                 productsIDs: this.cart.map((item) => item.id),
                 numberOfSpaces: this.cart.map((item) => item.quantity),
               };
-
-              // Submit the order via POST
-              const response = await fetch(
-                `${this.backendApiBaseUrl}/collections/orders`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(orderPayload),
-                }
-              );
-
+          
+              // Submit the order
+              const response = await fetch(`${this.backendApiBaseUrl}/collections/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderPayload),
+              });
+          
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error submitting order:", errorData);
-                console.log(`Error submitting order: ${errorData.error}`);
+                alert("Failed to submit the order. Please try again later.");
                 return;
               }
-
-              console.log(
-                "Order submitted successfully:",
-                await response.json()
-              );
-
-              // Update inventory via PUT
+          
+              console.log("Order submitted successfully:", await response.json());
+          
+              // Update inventory
               await this.updateInventory(false);
-
-              // Refresh product data
+          
+              // Fetch latest product data
               await this.fetchData();
-
-              // Clear the cart and reset the form
-          console.log("Your order has been placed successfully!");
-
+          
+              // Clear cart and reset form
+              alert("Your order has been placed successfully!");
               this.cart = [];
               this.order = {
                 firstName: "",
@@ -648,19 +621,19 @@
                 phoneNumber: "",
                 address: "",
                 city: "",
-                state: "",
                 zip: "",
+                state: "",
                 method: "Home",
                 gift: false,
               };
-              this.showProduct = true; // Switch back to product listing
+              this.showProduct = true;
             } catch (error) {
               console.error("Error during order submission:", error);
-              console.log(
-                "An error occurred while processing your order. Please try again later."
-              );
+              alert("An error occurred while processing your order. Please try again later.");
             }
           },
+          
+          
           showCheckout: function () {
             this.showProduct = !this.showProduct;
           },
@@ -685,27 +658,30 @@
             }
             this.cart.splice(index, 1);
           },
-          validateName: function (field) {
+          validateName(field) {
             const nameRegex = /^[A-Za-z\s]+$/;
-            if (!this.order[field].trim()) {
+            const value = (this.order[field] || "").trim(); // Default to an empty string if undefined
+            if (!value) {
               this.errors[field] = "This field is required.";
-            } else if (!nameRegex.test(this.order[field])) {
+            } else if (!nameRegex.test(value)) {
               this.errors[field] = "Only letters and spaces are allowed!";
             } else {
               this.errors[field] = "";
             }
           },
-          validatePhoneNumber: function () {
+          
+          validatePhoneNumber() {
             const phoneRegex = /^[0-9]+$/;
-            if (!this.order.phoneNumber.trim()) {
+            const value = (this.order.phoneNumber || "").trim(); // Default to empty string if undefined
+            if (!value) {
               this.errors.phoneNumber = "This field is required.";
-            } else if (!phoneRegex.test(this.order.phoneNumber)) {
-              this.errors.phoneNumber =
-                "Only numbers are allowed in the phone number!";
+            } else if (!phoneRegex.test(value)) {
+              this.errors.phoneNumber = "Only numbers are allowed in the phone number!";
             } else {
               this.errors.phoneNumber = "";
             }
           },
+          
           submitForm: function () {
             // Validate form fields
             this.validateName("firstName");
