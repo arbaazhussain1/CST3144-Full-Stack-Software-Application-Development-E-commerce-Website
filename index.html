@@ -474,11 +474,10 @@
                 }/collections/products/search/${encodeURIComponent(query)}`
               );
               if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error searching products:", errorData);
-                alert(`Error searching products: ${errorData.message}`);
+                console.error("Error searching products");
+                this.products = []; // Default to an empty product list on error
                 return;
-              }
+              }              
               const results = await response.json();
               console.log("Search results from backend:", results); // Log the results
               this.products = results; // Update the product list with search results
