@@ -243,7 +243,7 @@
                   type="text"
                   class="form-control"
                   id="firstName"
-                  v-model.trim="order.firstName"
+                  v-model="order.firstName"
                   v-on:input="validateName('firstName')"
                   required
                 />
@@ -258,7 +258,7 @@
                   type="text"
                   class="form-control"
                   id="lastName"
-                  v-model.trim="order.lastName"
+                  v-model="order.lastName"
                   v-on:input="validateName('lastName')"
                   required
                 />
@@ -275,7 +275,7 @@
                   type="tel"
                   class="form-control"
                   id="phoneNumber"
-                  v-model.trim="order.phoneNumber"
+                  v-model="order.phoneNumber"
                   v-on:input="validatePhoneNumber"
                   required
                 />
@@ -290,7 +290,7 @@
                   type="text"
                   class="form-control"
                   id="address"
-                  v-model.trim="order.address"
+                  v-model="order.address"
                 />
               </div>
 
@@ -300,7 +300,7 @@
                   type="text"
                   class="form-control"
                   id="city"
-                  v-model.trim="order.city"
+                  v-model="order.city"
                 />
               </div>
 
@@ -661,12 +661,12 @@
             this.cart.splice(index, 1);
           },
           validateName(field) {
-            const nameRegex = /^[A-Za-z\s]+$/;
-            const value = (this.order[field] || "").trim(); // Default to an empty string if undefined
+            const nameRegex = /^[A-Za-z]+$/;
+            const value = (this.order[field] || ""); // Default to an empty string if undefined
             if (!value) {
               this.errors[field] = "This field is required.";
             } else if (!nameRegex.test(value)) {
-              this.errors[field] = "Only letters and spaces are allowed!";
+              this.errors[field] = "Only letters and NO spaces are allowed!";
             } else {
               this.errors[field] = "";
             }
@@ -674,7 +674,7 @@
 
           validatePhoneNumber() {
             const phoneRegex = /^[0-9]+$/;
-            const value = (this.order.phoneNumber || "").trim(); // Default to empty string if undefined
+            const value = (this.order.phoneNumber || ""); // Default to empty string if undefined
 
             if (!value) {
               this.errors.phoneNumber = "This field is required.";
@@ -790,9 +790,9 @@
           },
           isFormValid() {
             return (
-              this.order.firstName.trim() !== "" &&
-              this.order.lastName.trim() !== "" &&
-              this.order.phoneNumber.trim() !== "" &&
+              this.order.firstName !== "" &&
+              this.order.lastName !== "" &&
+              this.order.phoneNumber !== "" &&
               !this.errors.firstName &&
               !this.errors.lastName &&
               !this.errors.phoneNumber
