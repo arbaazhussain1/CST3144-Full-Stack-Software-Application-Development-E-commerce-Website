@@ -435,7 +435,9 @@
         methods: {
           fetchData: async function () {
             try {
-              const response = await fetch(`${this.backendApiBaseUrl}/collections/products`);
+              const response = await fetch(
+                `${this.backendApiBaseUrl}/collections/products`
+              );
               if (!response.ok) {
                 throw new Error(`Error fetching data: ${response.statusText}`);
               }
@@ -443,6 +445,8 @@
               console.log("Fetched products:", data); // Log the products fetched
               this.products = data.map((product) => ({
                 ...product,
+                _id: product._id, // Ensure the MongoDB ObjectId is included
+                id: product.id || product._id, // Include both id and _id for flexibility
                 price: product.price ? parseFloat(product.price) : 0,
                 availableInventory: product.availableInventory
                   ? parseInt(product.availableInventory, 10)
@@ -455,6 +459,7 @@
             }
           },
           
+
           // Search products by query using the backend
           async fetchSearchResults(query) {
             if (!query.trim()) {
@@ -484,62 +489,64 @@
           },
 
           // PUT method to update a product
-          updateProduct: async function (productId, updatedData) {
+          updateProduct: async function (productID, updatedData) {
+            console.log("Product ID (_id):", productID);
+            console.log("Updated Data:", updatedData);
+          
+            if (!productID) {
+              console.error("Invalid product ID (_id) provided!");
+              return;
+            }
+          
             try {
               const response = await fetch(
-                `${this.backendApiBaseUrl}/collections/products/${productId}`,
+                `${this.backendApiBaseUrl}/collections/products/${productID}`,
                 {
-                  method: "PUT", // HTTP method
+                  method: "PUT",
                   headers: {
-                    "Content-Type": "application/json", // Specify JSON content
+                    "Content-Type": "application/json",
                   },
-                  body: JSON.stringify(updatedData), // Data to send in the request
+                  body: JSON.stringify(updatedData),
                 }
               );
-
+          
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error updating product:", errorData);
-                console.log(`Error updating product: ${errorData.error}`);
                 return;
               }
-
+          
               const responseData = await response.json();
               console.log("Product updated successfully:", responseData);
-
-              // Fetch the updated product list after the PUT request
-              await this.fetchData(); // Ensure this function fetches all updated products from the server
-              console.log(
-                "Product updated successfully and inventory refreshed!"
-              );
+          
+              // Optionally fetch updated product list
+              await this.fetchData();
             } catch (error) {
-              console.error(
-                "Network or server error during product update:",
-                error
-              );
-              console.log(
-                "An error occurred while updating the product. Please try again."
-              );
+              console.error("Network or server error during product update:", error);
             }
           },
           
           
-          
-          
-          
+
           async submitOrder() {
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
           
-            const hasErrors = this.errors.firstName || this.errors.lastName || this.errors.phoneNumber;
+            const hasErrors =
+              this.errors.firstName ||
+              this.errors.lastName ||
+              this.errors.phoneNumber;
+          
             if (hasErrors || !this.isFormValid) {
               alert("Please correct the errors before submitting the form!");
               return;
             }
           
             if (this.cart.length === 0) {
-              alert("Your cart is empty! Please add items to the cart before placing an order.");
+              alert(
+                "Your cart is empty! Please add items to the cart before placing an order."
+              );
               return;
             }
           
@@ -557,16 +564,32 @@
                   method: this.order.method,
                   gift: this.order.gift,
                 },
-                productsIDs: this.cart.map((item) => item.id),
+                productsIDs: this.cart.map((item) => item.id), // Use the _id field
                 numberOfSpaces: this.cart.map((item) => item.quantity),
               };
           
+              console.log("Cart Items:", this.cart);
+          
+              // Update inventory for each product in the cart
+              for (const item of this.cart) {
+                if (!item.id) {
+                  console.error("Invalid product _id detected in cart:", item);
+                  alert("One or more products in your cart have invalid IDs.");
+                  return;
+                }
+                console.log(`Updating product ${item.id} with quantity: ${item.quantity}`);
+                await this.updateProduct(item.id, { availableInventory: -item.quantity });
+              }
+          
               // Submit the order
-              const response = await fetch(`${this.backendApiBaseUrl}/collections/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(orderPayload),
-              });
+              const response = await fetch(
+                `${this.backendApiBaseUrl}/collections/orders`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(orderPayload),
+                }
+              );
           
               if (!response.ok) {
                 const errorData = await response.json();
@@ -576,9 +599,6 @@
               }
           
               console.log("Order submitted successfully:", await response.json());
-          
-              // Update inventory
-              await this.updateProduct(false);
           
               // Fetch latest product data
               await this.fetchData();
@@ -600,7 +620,9 @@
               this.showProduct = true;
             } catch (error) {
               console.error("Error during order submission:", error);
-              alert("An error occurred while processing your order. Please try again later.");
+              alert(
+                "An error occurred while processing your order. Please try again later."
+              );
             }
           },
           
@@ -609,8 +631,14 @@
             this.showProduct = !this.showProduct;
           },
           addItemToTheCart: function (product) {
+            if (!product._id) {
+              console.error("Cannot add product to cart without a valid MongoDB _id:", product);
+              alert("The product you are trying to add is invalid.");
+              return;
+            }
+          
             this.cart.push({
-              id: product.id,
+              id: product._id, // Use the MongoDB ObjectId for the cart item
               subject: product.subject,
               price: product.price,
               location: product.location,
@@ -618,7 +646,10 @@
               image: `${this.backendApiBaseUrl}/${product.image}`,
             });
             product.availableInventory--;
+            console.log("Added product to cart:", product._id);
           },
+          
+          
           canAddToTheCart: function (product) {
             return product.availableInventory > 0;
           },
@@ -640,28 +671,30 @@
               this.errors[field] = "";
             }
           },
-          
+
           validatePhoneNumber() {
             const phoneRegex = /^[0-9]+$/;
             const value = (this.order.phoneNumber || "").trim(); // Default to empty string if undefined
-          
+
             if (!value) {
               this.errors.phoneNumber = "This field is required.";
             } else if (!phoneRegex.test(value)) {
-              this.errors.phoneNumber = "Only numbers are allowed in the phone number!";
+              this.errors.phoneNumber =
+                "Only numbers are allowed in the phone number!";
             } else if (value.length !== 11) {
-              this.errors.phoneNumber = "The phone number must be exactly 11 digits.";
+              this.errors.phoneNumber =
+                "The phone number must be exactly 11 digits.";
             } else {
               this.errors.phoneNumber = "";
             }
           },
-          
+
           submitForm: function () {
             // Validate form fields
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
-          
+
             // Check if the form has errors or the cart is empty
             if (
               this.errors.firstName ||
@@ -670,15 +703,17 @@
               this.cart.length === 0
             ) {
               // Alert user if validation fails or cart is empty
-              alert("Please Correct The Errors Or Add Items To The Cart Before Submitting!");
+              alert(
+                "Please Correct The Errors Or Add Items To The Cart Before Submitting!"
+              );
               return; // Stop further execution
             }
-          
+
             // If no errors, proceed with submission
             alert(
               "Congratulations! Your Order Has Been Successfully Submitted! Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
             );
-          
+
             // Clear form and cart
             this.order = {
               firstName: "",
@@ -693,7 +728,7 @@
             };
             this.cart = [];
             this.showProduct = true; // Switch back to product view
-          },          
+          },
           getFullStateName: function (stateCode) {
             return this.states[stateCode] || "Unknown State";
           },
