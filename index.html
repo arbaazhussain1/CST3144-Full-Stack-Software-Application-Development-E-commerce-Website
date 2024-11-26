@@ -458,8 +458,6 @@
               alert("Failed to fetch products. Please try again later.");
             }
           },
-          
-
           // Search products by query using the backend
           async fetchSearchResults(query) {
             if (!query.trim()) {
@@ -487,17 +485,16 @@
               );
             }
           },
-
           // PUT method to update a product
           updateProduct: async function (productID, updatedData) {
             console.log("Product ID (_id):", productID);
             console.log("Updated Data:", updatedData);
-          
+
             if (!productID) {
               console.error("Invalid product ID (_id) provided!");
               return;
             }
-          
+
             try {
               const response = await fetch(
                 `${this.backendApiBaseUrl}/collections/products/${productID}`,
@@ -509,47 +506,45 @@
                   body: JSON.stringify(updatedData),
                 }
               );
-          
+
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error updating product:", errorData);
                 return;
               }
-          
+
               const responseData = await response.json();
               console.log("Product updated successfully:", responseData);
-          
+
               // Optionally fetch updated product list
               await this.fetchData();
             } catch (error) {
-              console.error("Network or server error during product update:", error);
+              console.error(
+                "Network or server error during product update:",
+                error
+              );
             }
           },
-          
-          
-
           async submitOrder() {
             this.validateName("firstName");
             this.validateName("lastName");
             this.validatePhoneNumber();
-          
+
             const hasErrors =
               this.errors.firstName ||
               this.errors.lastName ||
               this.errors.phoneNumber;
-          
+
             if (hasErrors || !this.isFormValid) {
               alert("Please correct the errors before submitting the form!");
               return;
             }
-          
             if (this.cart.length === 0) {
-              alert(
+              console.log(
                 "Your cart is empty! Please add items to the cart before placing an order."
               );
               return;
             }
-          
             try {
               // Prepare the order payload
               const orderPayload = {
@@ -567,9 +562,9 @@
                 productsIDs: this.cart.map((item) => item.id), // Use the _id field
                 numberOfSpaces: this.cart.map((item) => item.quantity),
               };
-          
+
               console.log("Cart Items:", this.cart);
-          
+
               // Update inventory for each product in the cart
               for (const item of this.cart) {
                 if (!item.id) {
@@ -577,10 +572,14 @@
                   alert("One or more products in your cart have invalid IDs.");
                   return;
                 }
-                console.log(`Updating product ${item.id} with quantity: ${item.quantity}`);
-                await this.updateProduct(item.id, { availableInventory: -item.quantity });
+                console.log(
+                  `Updating product ${item.id} with quantity: ${item.quantity}`
+                );
+                await this.updateProduct(item.id, {
+                  availableInventory: -item.quantity,
+                });
               }
-          
+
               // Submit the order
               const response = await fetch(
                 `${this.backendApiBaseUrl}/collections/orders`,
@@ -590,19 +589,22 @@
                   body: JSON.stringify(orderPayload),
                 }
               );
-          
+
               if (!response.ok) {
                 const errorData = await response.json();
                 console.error("Error submitting order:", errorData);
                 alert("Failed to submit the order. Please try again later.");
                 return;
               }
-          
-              console.log("Order submitted successfully:", await response.json());
-          
+
+              console.log(
+                "Order submitted successfully:",
+                await response.json()
+              );
+
               // Fetch latest product data
               await this.fetchData();
-          
+
               // Clear cart and reset form
               alert("Your order has been placed successfully!");
               this.cart = [];
@@ -625,18 +627,18 @@
               );
             }
           },
-          
-          
           showCheckout: function () {
             this.showProduct = !this.showProduct;
           },
           addItemToTheCart: function (product) {
             if (!product._id) {
-              console.error("Cannot add product to cart without a valid MongoDB _id:", product);
+              console.error(
+                "Cannot add product to cart without a valid MongoDB _id:",
+                product
+              );
               alert("The product you are trying to add is invalid.");
               return;
             }
-          
             this.cart.push({
               id: product._id, // Use the MongoDB ObjectId for the cart item
               subject: product.subject,
@@ -648,21 +650,24 @@
             product.availableInventory--;
             console.log("Added product to cart:", product._id);
           },
-          
-          
           canAddToTheCart: function (product) {
             return product.availableInventory > 0;
           },
           removeItemFromCart: function (item, index) {
-            const product = this.products.find((p) => p.id === item.id);
+            const product = this.products.find((p) => p._id === item.id); // Match by the product ID
             if (product) {
-              product.availableInventory++;
+              // Restore the inventory by adding the quantity back
+              product.availableInventory += item.quantity;
             }
+            // Remove the item from the cart
             this.cart.splice(index, 1);
+            console.log(
+              `Removed item from cart: ${item.id}, restored inventory.`
+            );
           },
           validateName(field) {
             const nameRegex = /^[A-Za-z]+$/;
-            const value = (this.order[field] || ""); // Default to an empty string if undefined
+            const value = this.order[field] || ""; // Default to an empty string if undefined
             if (!value) {
               this.errors[field] = "This field is required.";
             } else if (!nameRegex.test(value)) {
@@ -671,10 +676,9 @@
               this.errors[field] = "";
             }
           },
-
           validatePhoneNumber() {
             const phoneRegex = /^[0-9]+$/;
-            const value = (this.order.phoneNumber || ""); // Default to empty string if undefined
+            const value = this.order.phoneNumber || ""; // Default to empty string if undefined
 
             if (!value) {
               this.errors.phoneNumber = "This field is required.";
@@ -688,7 +692,6 @@
               this.errors.phoneNumber = "";
             }
           },
-
           submitForm: function () {
             // Validate form fields
             this.validateName("firstName");
@@ -713,7 +716,6 @@
             alert(
               "Congratulations! Your Order Has Been Successfully Submitted! Your Order Is Being Processed! Feel Free To Browse And Explore More Great Finds While We Take Care Of The Rest. Have An Amazing Day!"
             );
-
             // Clear form and cart
             this.order = {
               firstName: "",
