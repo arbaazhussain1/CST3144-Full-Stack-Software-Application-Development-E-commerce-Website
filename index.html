@@ -522,36 +522,7 @@
               );
             }
           },
-          async updateInventory(restore) {
-            try {
-              for (const item of this.cart) {
-                const productId = item.id;
-                const quantityChange = restore ? item.quantity : -item.quantity;
           
-                console.log("Sending inventory update for:", productId, "Change:", quantityChange);
-          
-                const response = await fetch(
-                  `${this.backendApiBaseUrl}/collections/products/${productId}`,
-                  {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ availableInventory: quantityChange }),
-                  }
-                );
-          
-                if (!response.ok) {
-                  const errorData = await response.json();
-                  console.error(`Error updating inventory for product ${productId}:`, errorData);
-                  throw new Error(`Failed to update inventory for product ${productId}`);
-                }
-          
-                console.log(`Inventory update successful for product ${productId}`);
-              }
-            } catch (error) {
-              console.error("Error during inventory update:", error);
-              alert("Failed to update inventory. Please try again later.");
-            }
-          },
           
           
           
@@ -607,7 +578,7 @@
               console.log("Order submitted successfully:", await response.json());
           
               // Update inventory
-              await this.updateInventory(false);
+              await this.updateProduct(false);
           
               // Fetch latest product data
               await this.fetchData();
@@ -673,10 +644,13 @@
           validatePhoneNumber() {
             const phoneRegex = /^[0-9]+$/;
             const value = (this.order.phoneNumber || "").trim(); // Default to empty string if undefined
+          
             if (!value) {
               this.errors.phoneNumber = "This field is required.";
             } else if (!phoneRegex.test(value)) {
               this.errors.phoneNumber = "Only numbers are allowed in the phone number!";
+            } else if (value.length !== 11) {
+              this.errors.phoneNumber = "The phone number must be exactly 11 digits.";
             } else {
               this.errors.phoneNumber = "";
             }
